@@ -11,25 +11,17 @@
 <!-- 	</mvc:interceptors> -->
 
 	<!-- MySql -->
-	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		
-		<property name="url" value="jdbc:mysql://118.39.18.98:3306/ububa?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8&amp;max-connections=100&amp;min-connections=2&amp;inactivity-timeout=30&amp;wait-timeout=30/" />
+		<property name="url" value="jdbc:mysql://118.39.18.98:3306/ububa?amp;useUnicode=true&amp;characterEncoding=utf-8&amp;max-connections=100&amp;min-connections=2&amp;inactivity-timeout=30&amp;wait-timeout=30/" />
 		<property name="username" value="company" />
 		<property name="password" value="1234" />
 		
 		<property name="maxActive" value="20" />
 		<property name="maxIdle" value="10" />
 		<property name="validationQuery" value="select 1" />
-	</bean> -->
-	
-	<!-- MySql DB Pool -->
-	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
-        <property name="jndiName">
-        	<value>jdbc/myconn</value>
-        </property>
-        <property name="resourceRef" value="true" />
-    </bean>
+	</bean>
     
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />

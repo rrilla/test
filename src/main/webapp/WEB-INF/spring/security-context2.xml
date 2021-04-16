@@ -1,0 +1,37 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
+
+	<http auto-config="true" use-expressions="true" create-session="never">
+		<!-- <access-denied-handler error-page="/login.do" />
+		<intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_ADMIN')"/> -->
+		<intercept-url pattern="*" access="permitAll"/>
+	</http>
+	
+	<beans:bean id="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+	
+	<authentication-manager>
+	  <authentication-provider>
+	  	<password-encoder ref="bcryptPasswordEncoder" />
+	    <!-- <user-service>
+	      <user name="golden" password="raccoon" authorities="ROLE_USER"/>
+	      <user name="admin" password="admin" authorities="ROLE_ADMIN"/>
+	    </user-service> -->
+	    <jdbc-user-service data-source-ref="dataSource"
+			users-by-username-query=
+			"select seq_user,password,enabled
+			from tb_user_m
+			where id=?"
+			
+			authorities-by-username-query=
+			"select seq_user, authority
+			from tb_auth_m
+			where seq_user=?"/>
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

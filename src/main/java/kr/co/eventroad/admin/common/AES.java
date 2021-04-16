@@ -3,13 +3,16 @@ package kr.co.eventroad.admin.common;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.security.Key;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+//import sun.misc.BASE64Decoder;
+//import sun.misc.BASE64Encoder;
 
 
 public class AES {
@@ -29,10 +32,14 @@ public class AES {
 		cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, getKey());
 
 		byte[] outputBytes1 = cipher.doFinal(str.getBytes("UTF8"));
-
-		BASE64Encoder encoder = new BASE64Encoder();
-		String ret = encoder.encode(outputBytes1);
+		
+		Encoder encoder = Base64.getEncoder();
+		String ret = new String(encoder.encode(outputBytes1));
 		return ret;
+
+//		BASE64Encoder encoder = new BASE64Encoder();
+//		String ret = encoder.encode(outputBytes1);
+//		return ret;
 	}
 	
 //	 encrypmap 과 decrypmap 을 할 때 변수 하나 더 받아서 처리	
@@ -45,10 +52,15 @@ public class AES {
 		javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(instance);
 		cipher.init(javax.crypto.Cipher.DECRYPT_MODE, getKey());
 
-		BASE64Decoder decoder = new BASE64Decoder();
-		byte[] inputBytes1 = decoder.decodeBuffer(str);
-
+		Decoder decoder = Base64.getDecoder();
+		byte[] inputBytes1 = decoder.decode(str);
+		
 		byte[] outputBytes1 = cipher.doFinal(inputBytes1);
+		
+//		BASE64Decoder decoder = new BASE64Decoder();
+//		byte[] inputBytes1 = decoder.decodeBuffer(str);
+//
+//		byte[] outputBytes1 = cipher.doFinal(inputBytes1);
 
 		String strResult = new String(outputBytes1, "UTF8");
 		return strResult;
@@ -61,8 +73,11 @@ public class AES {
 		byte[] mapByte = getObjectAsBytes(map);
 		byte[] encrypt = cipher.doFinal(mapByte);
 
-		BASE64Encoder encoder = new BASE64Encoder();
-		String outputStr1 = encoder.encode(encrypt);
+		Encoder encoder = Base64.getEncoder();
+		String outputStr1 = new String(encoder.encode(encrypt));
+		
+//		BASE64Encoder encoder = new BASE64Encoder();
+//		String outputStr1 = encoder.encode(encrypt);
 		return outputStr1;
 	}
 
@@ -70,9 +85,12 @@ public class AES {
 		String transformation = "AES/ECB/PKCS5Padding";
 		Cipher cipher = Cipher.getInstance(transformation);
 		cipher.init(Cipher.DECRYPT_MODE, getKey());
-		BASE64Decoder decoder = new BASE64Decoder();
-
-		byte[] inputBytes1 = decoder.decodeBuffer(codedID);
+		
+		Decoder decoder = Base64.getDecoder();
+		byte[] inputBytes1 = decoder.decode(codedID);
+		
+//		BASE64Decoder decoder = new BASE64Decoder();
+//		byte[] inputBytes1 = decoder.decodeBuffer(codedID);
 
 		byte[] decrypt = cipher.doFinal(inputBytes1);
 		Map map = (Map) toObject(decrypt);
