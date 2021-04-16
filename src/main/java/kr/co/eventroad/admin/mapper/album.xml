@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="album">
+	<insert id="insertAlbum" useGeneratedKeys="true" keyProperty="seq_album">
+		INSERT INTO tb_album_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			
+			<if test="album_image_1 != null"> album_image_1, </if>
+			<if test="album_image_2 != null"> album_image_2, </if>
+			<if test="album_image_3 != null"> album_image_3, </if>
+			<if test="album_image_4 != null"> album_image_4, </if>
+			<if test="album_image_5 != null"> album_image_5, </if>
+			<if test="album_image_6 != null"> album_image_6, </if>
+			<if test="album_image_7 != null"> album_image_7, </if>
+			<if test="album_image_8 != null"> album_image_8, </if>
+			<if test="album_image_9 != null"> album_image_9, </if>
+			<if test="album_image_10 != null"> album_image_10, </if>
+			
+			<if test="is_reply != null"> is_reply, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			
+			<if test="album_image_1 != null"> #{album_image_1} ,</if>
+			<if test="album_image_2 != null"> #{album_image_2} ,</if>
+			<if test="album_image_3 != null"> #{album_image_3} ,</if>
+			<if test="album_image_4 != null"> #{album_image_4} ,</if>
+			<if test="album_image_5 != null"> #{album_image_5} ,</if>
+			<if test="album_image_6 != null"> #{album_image_6} ,</if>
+			<if test="album_image_7 != null"> #{album_image_7} ,</if>
+			<if test="album_image_8 != null"> #{album_image_8} ,</if>
+			<if test="album_image_9 != null"> #{album_image_9} ,</if>
+			<if test="album_image_10 != null"> #{album_image_10} ,</if>
+			
+			<if test="is_reply != null"> #{is_reply} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateAlbum" resultType="hashmap">
+		UPDATE
+			tb_album_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden != null"> seq_kindergarden = #{seq_kindergarden} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="title != null">, title = #{title}</if>
+				<if test="content != null">, content = #{content}</if>
+				
+				<if test="album_image_1 != null">, album_image_1 = #{album_image_1}</if>
+				<if test="album_image_2 != null">, album_image_2 = #{album_image_2}</if>
+				<if test="album_image_3 != null">, album_image_3 = #{album_image_3}</if>
+				<if test="album_image_4 != null">, album_image_4 = #{album_image_4}</if>
+				<if test="album_image_5 != null">, album_image_5 = #{album_image_5}</if>
+				<if test="album_image_6 != null">, album_image_6 = #{album_image_6}</if>
+				<if test="album_image_7 != null">, album_image_7 = #{album_image_7}</if>
+				<if test="album_image_8 != null">, album_image_8 = #{album_image_8}</if>
+				<if test="album_image_9 != null">, album_image_9 = #{album_image_9}</if>
+				<if test="album_image_10 != null">, album_image_10 = #{album_image_10}</if>
+				
+				<if test="is_reply != null">, is_reply = #{is_reply}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_album=#{seq_album}
+    </select>
+	
+	<select id="deleteAlbum" resultType="hashmap">
+    	DELETE FROM tb_album_m WHERE seq_album=#{seq_album}
+    </select>
+	
+	<select id="selectAlbumList" resultType="hashmap">
+		select
+			am2.authority, ifnull(kcd.kindergarden_class_name, '전체') as kindergarden_class_name ,um.name, am.*, um.user_image
+		from
+			tb_album_m am
+		inner join tb_user_m um on am.seq_user = um.seq_user
+		inner join tb_auth_m am2 on am.seq_user = am2.seq_user
+		left outer join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		where am.seq_kindergarden = #{seq_kindergarden}
+		<if test="seq_kindergarden_class != null"> and (am.seq_kindergarden_class = #{seq_kindergarden_class} or am.seq_kindergarden_class = 0)</if>
+		order by am.seq_album desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectAlbumOne" resultType="hashmap">
+		select
+			am2.authority, ifnull(kcd.kindergarden_class_name, '전체') as kindergarden_class_name ,um.name, am.*, um.user_image
+		from
+			tb_album_m am
+		inner join tb_user_m um on am.seq_user = um.seq_user
+		inner join tb_auth_m am2 on am.seq_user = am2.seq_user
+		left outer join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		where
+			am.seq_album = #{seq_album}
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <insert id="insertStore" useGeneratedKeys="true" keyProperty="seq_store">
+		INSERT INTO tb_store_m (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="store_name != null"> store_name, </if>
+			<if test="store_info != null"> store_info, </if>
+			<if test="tel_no != null"> tel_no, </if>
+			
+			<if test="bsins_day_cd != null"> bsins_day_cd, </if>
+			<if test="bsins_start_time != null"> bsins_start_time, </if>
+			<if test="bsins_end_time != null"> bsins_end_time, </if>
+			
+			<if test="park_yn != null"> park_yn, </if>
+			<if test="deliver_yn != null"> deliver_yn, </if>
+			<if test="reserve_yn != null"> reserve_yn, </if>
+			<if test="card_yn != null"> card_yn, </if>
+			
+			<if test="yellowid != null"> yellowid, </if>
+			<if test="facebook != null"> facebook, </if>
+			<if test="homepage != null"> homepage, </if>
+			
+			<if test="ar1 != null"> ar1, </if>
+			<if test="ar2 != null"> ar2, </if>
+			<if test="ar3 != null"> ar3, </if>
+			<if test="ar4 != null"> ar4, </if>
+			<if test="ar5 != null"> ar5, </if>
+			<if test="addr_detail != null"> addr_detail, </if>
+			<if test="addr_road != null"> addr_road, </if>
+			<if test="dtl_item_cd != null"> dtl_item_cd, </if>
+			<if test="up_dtl_item_cd != null"> up_dtl_item_cd, </if>
+			
+			<if test="introduce != null"> introduce, </if>
+			
+			<if test="lat != null"> lat, </if>
+			<if test="lng != null"> lng, </if>
+			
+			<if test="img_store0 != null"> img_store0, </if>
+			<if test="img_store1 != null"> img_store1, </if>
+			<if test="img_store2 != null"> img_store2, </if>
+			<if test="img_store3 != null"> img_store3, </if>
+			<if test="img_store4 != null"> img_store4, </if>
+			<if test="img_store5 != null"> img_store5, </if>
+			<if test="img_store6 != null"> img_store6, </if>
+			<if test="img_store7 != null"> img_store7, </if>
+			<if test="img_store8 != null"> img_store8, </if>
+			<if test="img_store9 != null"> img_store9, </if>
+			<if test="img_store10 != null"> img_store10, </if>
+			
+			<if test="prlevel1 != null"> prlevel1, </if>
+			<if test="prlevel2 != null"> prlevel2, </if>
+			<if test="prlevel3 != null"> prlevel3, </if>
+			<if test="prlevel4 != null"> prlevel4, </if>
+			<if test="prlevel5 != null"> prlevel5, </if>
+			<if test="redupr1 != null"> redupr1, </if>
+			<if test="redupr2 != null"> redupr2, </if>
+			<if test="redupr3 != null"> redupr3, </if>
+			<if test="redupr4 != null"> redupr4, </if>
+			<if test="redupr5 != null"> redupr5, </if>
+			<if test="coupon_enable1 != null"> coupon_enable1, </if>
+			<if test="coupon_enable2 != null"> coupon_enable2, </if>
+			<if test="coupon_enable3 != null"> coupon_enable3, </if>
+			<if test="coupon_enable4 != null"> coupon_enable4, </if>
+			<if test="coupon_enable5 != null"> coupon_enable5, </if>
+			
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="store_name != null"> #{store_name} ,</if>
+			<if test="store_info != null"> #{store_info} ,</if>
+			<if test="tel_no != null"> #{tel_no} ,</if>
+			
+			<if test="bsins_day_cd != null"> #{bsins_day_cd} ,</if>
+			<if test="bsins_start_time != null"> #{bsins_start_time} ,</if>
+			<if test="bsins_end_time != null"> #{bsins_end_time} ,</if>
+			
+			<if test="park_yn != null"> #{park_yn} ,</if>
+			<if test="deliver_yn != null"> #{deliver_yn} ,</if>
+			<if test="reserve_yn != null"> #{reserve_yn} ,</if>
+			<if test="card_yn != null"> #{card_yn} ,</if>
+			
+			<if test="yellowid != null"> #{yellowid} ,</if>
+			<if test="facebook != null"> #{facebook} ,</if>
+			<if test="homepage != null"> #{homepage} ,</if>
+			
+			<if test="ar1 != null"> #{ar1} ,</if>
+			<if test="ar2 != null"> #{ar2} ,</if>
+			<if test="ar3 != null"> #{ar3} ,</if>
+			<if test="ar4 != null"> #{ar4} ,</if>
+			<if test="ar5 != null"> #{ar5} ,</if>
+			<if test="addr_detail != null"> #{addr_detail} ,</if>
+			<if test="addr_road != null"> #{addr_road} ,</if>
+			<if test="dtl_item_cd != null"> #{dtl_item_cd} ,</if>
+			<if test="up_dtl_item_cd != null"> #{up_dtl_item_cd} ,</if>
+			
+			<if test="introduce != null"> #{introduce} ,</if>
+			
+			<if test="lat != null"> #{lat} ,</if>
+			<if test="lng != null"> #{lng} ,</if>
+			
+			<if test="img_store0 != null"> #{img_store0} ,</if>
+			<if test="img_store1 != null"> #{img_store1} ,</if>
+			<if test="img_store2 != null"> #{img_store2} ,</if>
+			<if test="img_store3 != null"> #{img_store3} ,</if>
+			<if test="img_store4 != null"> #{img_store4} ,</if>
+			<if test="img_store5 != null"> #{img_store5} ,</if>
+			<if test="img_store6 != null"> #{img_store6} ,</if>
+			<if test="img_store7 != null"> #{img_store7} ,</if>
+			<if test="img_store8 != null"> #{img_store8} ,</if>
+			<if test="img_store9 != null"> #{img_store9} ,</if>
+			<if test="img_store10 != null"> #{img_store10} ,</if>
+			
+			<if test="prlevel1 != null"> #{prlevel1} ,</if>
+			<if test="prlevel2 != null"> #{prlevel2} ,</if>
+			<if test="prlevel3 != null"> #{prlevel3} ,</if>
+			<if test="prlevel4 != null"> #{prlevel4} ,</if>
+			<if test="prlevel5 != null"> #{prlevel5} ,</if>
+			
+			<if test="redupr1 != null"> #{redupr1} ,</if>
+			<if test="redupr2 != null"> #{redupr2} ,</if>
+			<if test="redupr3 != null"> #{redupr3} ,</if>
+			<if test="redupr4 != null"> #{redupr4} ,</if>
+			<if test="redupr5 != null"> #{redupr5} ,</if>
+			
+			<if test="coupon_enable1 != null"> #{coupon_enable1} ,</if>
+			<if test="coupon_enable2 != null"> #{coupon_enable2} ,</if>
+			<if test="coupon_enable3 != null"> #{coupon_enable3} ,</if>
+			<if test="coupon_enable4 != null"> #{coupon_enable4} ,</if>
+			<if test="coupon_enable5 != null"> #{coupon_enable5} ,</if>
+			
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<update id="updateStore">
+            UPDATE
+				tb_store_m
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="seq_user != null">seq_user=#{seq_user} </if>
+					<if test="store_name != null">, store_name=#{store_name}</if>
+					<if test="store_info != null">, store_info=#{store_info}</if>
+					<if test="tel_no != null">, tel_no=#{tel_no}</if>
+					
+					<if test="bsins_day_cd != null">, bsins_day_cd=#{bsins_day_cd}</if>
+					<if test="bsins_start_time != null">, bsins_start_time=#{bsins_start_time}</if>
+					<if test="bsins_end_time != null">, bsins_end_time=#{bsins_end_time}</if>
+					
+					<if test="park_yn != null">, park_yn=#{park_yn}</if>
+					<if test="deliver_yn != null">, deliver_yn=#{deliver_yn}</if>
+					<if test="reserve_yn != null">, reserve_yn=#{reserve_yn}</if>
+					<if test="card_yn != null">, card_yn=#{card_yn}</if>
+					
+					<if test="yellowid != null">, yellowid=#{yellowid}</if>
+					<if test="facebook != null">, facebook=#{facebook}</if>
+					<if test="homepage != null">, homepage=#{homepage}</if>
+					
+					<if test="ar1 != null">, ar1=#{ar1}</if>
+					<if test="ar2 != null">, ar2=#{ar2}</if>
+					<if test="ar3 != null">, ar3=#{ar3}</if>
+					<if test="ar4 != null">, ar4=#{ar4}</if>
+					<if test="ar5 != null">, ar5=#{ar5}</if>
+					<if test="addr_detail != null">, addr_detail=#{addr_detail}</if>
+					<if test="addr_road != null">, addr_road=#{addr_road}</if>
+					<if test="dtl_item_cd != null">, dtl_item_cd=#{dtl_item_cd}</if>
+					<if test="up_dtl_item_cd != null">, up_dtl_item_cd=#{up_dtl_item_cd}</if>
+					
+					<if test="introduce != null">, introduce=#{introduce}</if>
+					
+					<if test="lat != null">, lat=#{lat}</if>
+					<if test="lng != null">, lng=#{lng}</if>
+					
+					<if test="img_store0 != null">, img_store0=trim(#{img_store0})</if>
+					<if test="img_store1 != null">, img_store1=trim(#{img_store1})</if>
+					<if test="img_store2 != null">, img_store2=trim(#{img_store2})</if>
+					<if test="img_store3 != null">, img_store3=trim(#{img_store3})</if>
+					<if test="img_store4 != null">, img_store4=trim(#{img_store4})</if>
+					<if test="img_store5 != null">, img_store5=trim(#{img_store5})</if>
+					<if test="img_store6 != null">, img_store6=trim(#{img_store6})</if>
+					<if test="img_store7 != null">, img_store7=trim(#{img_store7})</if>
+					<if test="img_store8 != null">, img_store8=trim(#{img_store8})</if>
+					<if test="img_store9 != null">, img_store9=trim(#{img_store9})</if>
+					<if test="img_store10 != null">, img_store10=trim(#{img_store10})</if>
+					
+					<if test="prlevel1 != null">, prlevel1=#{prlevel1}</if>
+					<if test="prlevel2 != null">, prlevel2=#{prlevel2}</if>
+					<if test="prlevel3 != null">, prlevel3=#{prlevel3}</if>
+					<if test="prlevel4 != null">, prlevel4=#{prlevel4}</if>
+					<if test="prlevel5 != null">, prlevel5=#{prlevel5}</if>
+					<if test="redupr1 != null">, redupr1=#{redupr1}</if>
+					<if test="redupr2 != null">, redupr2=#{redupr2}</if>
+					<if test="redupr3 != null">, redupr3=#{redupr3}</if>
+					<if test="redupr4 != null">, redupr4=#{redupr4}</if>
+					<if test="redupr5 != null">, redupr5=#{redupr5}</if>
+					<if test="coupon_enable1 != null">, coupon_enable1=#{coupon_enable1}</if>
+					<if test="coupon_enable2 != null">, coupon_enable2=#{coupon_enable2}</if>
+					<if test="coupon_enable3 != null">, coupon_enable3=#{coupon_enable3}</if>
+					<if test="coupon_enable4 != null">, coupon_enable4=#{coupon_enable4}</if>
+					<if test="coupon_enable5 != null">, coupon_enable5=#{coupon_enable5}</if>
+					
+				</trim>
+			</set>
+			WHERE
+				seq_store=#{seq_store}
+	</update>
+	
+	<select id="selectStoreInfo" resultType="hashmap">
+		select * from tb_store_m where seq_user = #{seq_user}
+    </select>
+    
+    <select id="selectDealerInfo" resultType="hashmap">
+		select * from tb_user_ex_d where seq_user = (select seq_user_prt from tb_user_ex_d where seq_user = #{seq_user})
+    </select>
+    
+    <insert id="insertMenu" parameterType="java.util.List">
+		insert into tb_menu_d(seq_store, menu_name, menu_price, reg_date)
+        values
+        <foreach collection="list" item="item" separator=" , ">
+            (#{item.seq_store}, #{item.menu_name}, #{item.menu_price},now())
+        </foreach>
+	</insert>
+	
+	<select id="deleteMenu" resultType="hashmap">
+		DELETE FROM
+			tb_menu_d
+		where seq_store=#{seq_store}
+	</select>
+	
+	<select id="selectMenuList" resultType="hashmap">
+		select * from tb_menu_d where seq_store=#{seq_store}
+    </select>
+	
+</mapper>

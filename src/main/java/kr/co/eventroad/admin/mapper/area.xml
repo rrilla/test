@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="area">
+	<select id="selectAreaList" resultType="hashmap">
+		SELECT
+	       distinct ${ar_name} as ar_name
+		FROM
+			tb_area_m
+		WHERE
+			<if test="ar_name == 'ar1'.toString()"> 
+				1=1
+			</if>
+			<if test="ar_name == 'ar2'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+    <select id="selectArea" resultType="hashmap">
+	    SELECT
+	       distinct ${ar_name} as ar_name
+		FROM
+			tb_area_m
+		WHERE
+			<if test="ar_name == 'ar1'.toString()"> 
+				1=1
+			</if>
+			<if test="ar_name == 'ar2'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar3'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar4'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 = #{ar3} and ar3 <![CDATA[<>]]> '' and
+				ar4 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar5'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 = #{ar3} and ar3 <![CDATA[<>]]> '' and
+				ar4 = #{ar4} and ar4 <![CDATA[<>]]> '' and
+				ar5 <![CDATA[<>]]> ''
+			</if>
+    </select>
+    
+</mapper>

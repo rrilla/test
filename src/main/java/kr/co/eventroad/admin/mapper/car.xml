@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="car">
+	<select id="selectKindergardenKidsStationList" resultType="hashmap">
+		select
+			am.seq_kids, kcd.seq_kindergarden_class, kcd.kindergarden_class_name, kd.kids_name
+			, (select if( count(ksd.seq_kids_station)>0,'y','n') from tb_kids_station_d ksd inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station where csd.station_flag = 'g' and ksd.seq_kids = kd.seq_kids) as g_yn
+			, (select if( count(ksd.seq_kids_station)>0,'y','n') from tb_kids_station_d ksd inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station where csd.station_flag = 'h' and ksd.seq_kids = kd.seq_kids) as h_yn
+		from
+			tb_apply_m am
+		    inner join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		    inner join tb_kids_d kd on am.seq_kids = kd.seq_kids
+		where
+			am.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null"> and am.seq_kindergarden_class = #{seq_kindergarden_class} </if>
+		    and rep_flag = 'y'
+		    and req_flag = 'p'
+		order by kd.kids_name asc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectKidsStationList" resultType="hashmap">
+		select
+			cm.car_name, csd.station_flag, csd.station_name, ksd.*
+		from
+			tb_kids_station_d ksd
+			inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station
+			inner join tb_car_m cm on csd.seq_car = cm.seq_car
+		where
+			ksd.seq_kids = #{seq_kids}
+			and ksd.seq_kindergarden = #{seq_kindergarden}
+	</select>
+	
+	<select id="selectCarList" resultType="hashmap">
+		select
+			cm.seq_car, cm.car_name
+		from
+			tb_car_m cm
+		where
+			cm.seq_kindergarden = #{seq_kindergarden}
+	</select>
+	
+	<select id="selectCarStationList" resultType="hashmap">
+		select
+			csd.seq_car_station, csd.seq_car, csd.station_name, csd.addr, csd.hour, csd.min, csd.lat, csd.lng, csd.station_flag
+		from
+			tb_car_station_d csd
+		where
+			csd.seq_car=#{seq_car}
+			and csd.station_flag = #{station_flag}
+		order by csd.hour asc, csd.min asc, csd.seq_car_station asc
+	</select>
+	
+	<select id="selectKidsStationCheck" resultType="java.lang.Integer">
+		select
+			count(ksd.seq_kids_station)
+		from
+			tb_kids_station_d ksd
+		    inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station and csd.station_flag=#{station_flag}
+		where
+			ksd.seq_kindergarden = #{seq_kindergarden}
+		    and ksd.seq_kids = #{seq_kids}
+		    <if test="seq_kids_station != null">and ksd.seq_kids_station <![CDATA[<>]]> #{seq_kids_station}</if>
+		    and (
+		    	<trim prefixOverrides="and|or">
+					<if test="monday != null and monday=='y'.toString()">or ksd.monday = #{monday}</if>
+					<if test="tuesday != null and tuesday=='y'.toString()">or ksd.tuesday = #{tuesday}</if>
+					<if test="wednesday != null and wednesday=='y'.toString()">or ksd.wednesday = #{wednesday}</if>
+					<if test="thursday != null and thursday=='y'.toString()">or ksd.thursday = #{thursday}</if>
+					<if test="friday != null and friday=='y'.toString()">or ksd.friday = #{friday}</if>
+					<if test="saturday != null and saturday=='y'.toString()">or ksd.saturday = #{saturday}</if>
+					<if test="sunday != null and sunday=='y'.toString()">or ksd.sunday = #{sunday}</if>
+				</trim>
+		        )
+	</select>
+	
+	<insert id="insertKidsStation" useGeneratedKeys="true" keyProperty="seq_kids_station">
+		INSERT INTO tb_kids_station_d (
+		<trim suffixOverrides=",">
+			<if test="seq_car_station != null"> seq_car_station, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="monday != null"> monday, </if>
+			<if test="tuesday != null"> tuesday, </if>
+			<if test="wednesday != null"> wednesday, </if>
+			<if test="thursday != null"> thursday, </if>
+			<if test="friday != null"> friday, </if>
+			<if test="saturday != null"> saturday, </if>
+			<if test="sunday != null"> sunday, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_car_station != null"> #{seq_car_station} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="monday != null"> #{monday} ,</if>
+			<if test="tuesday != null"> #{tuesday} ,</if>
+			<if test="wednesday != null"> #{wednesday} ,</if>
+			<if test="thursday != null"> #{thursday} ,</if>
+			<if test="friday != null"> #{friday} ,</if>
+			<if test="saturday != null"> #{saturday} ,</if>
+			<if test="sunday != null"> #{sunday} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateKidsStation" resultType="hashmap">
+		UPDATE
+			tb_kids_station_d
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_car_station != null"> seq_car_station = #{seq_car_station} </if>
+				<if test="monday != null">, monday = #{monday} </if>
+				<if test="tuesday != null">, tuesday = #{tuesday}</if>
+				<if test="wednesday != null">, wednesday = #{wednesday}</if>
+				<if test="thursday != null">, thursday = #{thursday}</if>
+				<if test="friday != null">, friday = #{friday}</if>
+				<if test="saturday != null">, saturday = #{saturday}</if>
+				<if test="sunday != null">, sunday = #{sunday}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_kids_station=#{seq_kids_station}
+    </select>
+	
+	<select id="deleteKidsStation" resultType="hashmap">
+    	DELETE FROM tb_kids_station_d WHERE seq_kids_station=#{seq_kids_station}
+    </select>
+    
+    <!-- <select id="selectAttendanceBookList" resultType="hashmap">
+		select
+			csd.seq_car_station, csd.seq_car, csd.station_name, csd.addr, csd.hour, csd.min, csd.lat, csd.lng, csd.station_flag
+		from
+			tb_car_station_d csd
+		where
+			csd.seq_car=#{seq_car}
+			and csd.station_flag = #{station_flag}
+		order by csd.hour asc, csd.min asc
+	</select> -->
+    
+    <select id="selectGuideCarList" resultType="hashmap">
+		select
+			count(ksd.seq_kids_station) as kids_count, csd.seq_car_station, csd.seq_car, csd.station_name, csd.addr, csd.hour, csd.min, csd.lat, csd.lng, csd.station_flag
+		from
+			tb_car_m cm
+			inner join tb_car_station_d csd on cm.seq_car = csd.seq_car
+			left outer join tb_kids_station_d ksd on csd.seq_car_station = ksd.seq_car_station
+				<if test="monday != null">and ksd.monday = #{monday}</if>
+				<if test="tuesday != null">and ksd.tuesday = #{tuesday}</if>
+				<if test="wednesday != null">and ksd.wednesday = #{wednesday}</if>
+				<if test="thursday != null">and ksd.thursday = #{thursday}</if>
+				<if test="friday != null">and ksd.friday = #{friday}</if>
+				<if test="saturday != null">and ksd.saturday = #{saturday}</if>
+				<if test="sunday != null">and ksd.sunday = #{sunday}</if>
+		where cm.seq_car=#{seq_car} and csd.station_flag = #{station_flag}
+		group by csd.seq_car_station
+		order by csd.hour asc, csd.min asc
+	</select>
+    
+<!-- 		select ifnull(hrm.seq_user_teacher, 0) as seq_user_teacher, bm.beacon_sn, abm.attendance_flag, abm.memo, um.phone_no, ifnull(abm.seq_attendance_book, 0) as seq_attendance_book, kcd.kindergarden_class_name, kd.kids_name, ksd.seq_kids from tb_kids_station_d ksd -->
+    <select id="selectGuideKidsStationKidsList" resultType="hashmap">
+		select ifnull(hrm.seq_kids, 0) as seq_user_teacher, bm.beacon_sn, abm.attendance_flag, abm.memo, um.phone_no, ifnull(abm.seq_attendance_book, 0) as seq_attendance_book, kcd.kindergarden_class_name, kd.kids_name, ksd.seq_kids from tb_kids_station_d ksd
+		inner join tb_apply_m am on ksd.seq_kindergarden = am.seq_kindergarden and ksd.seq_kids = am.seq_kids and rep_flag = 'y' and req_flag = 'p'
+			<if test="seq_kindergarden_class != null"> and am.seq_kindergarden_class = #{seq_kindergarden_class} </if>
+		inner join tb_user_m um on am.seq_user = um.seq_user
+		inner join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		inner join tb_kids_d kd on am.seq_kids = kd.seq_kids
+		left outer join tb_attendance_book_m abm on ksd.seq_kids = abm.seq_kids and abm.year=#{year} and abm.month=#{month} and abm.day = #{day}
+		left outer join tb_beacon_m bm on am.seq_kindergarden = bm.seq_kindergarden and am.seq_kids = bm.seq_kids
+		left outer join tb_home_request_m hrm on am.seq_kindergarden = hrm.seq_kindergarden and am.seq_kids = hrm.seq_kids and hrm.year=#{year} and hrm.month=#{month} and hrm.day = #{day}
+		where
+			ksd.seq_car_station = #{seq_car_station}
+			<if test="monday != null">and ksd.monday = #{monday}</if>
+			<if test="tuesday != null">and ksd.tuesday = #{tuesday}</if>
+			<if test="wednesday != null">and ksd.wednesday = #{wednesday}</if>
+			<if test="thursday != null">and ksd.thursday = #{thursday}</if>
+			<if test="friday != null">and ksd.friday = #{friday}</if>
+			<if test="saturday != null">and ksd.saturday = #{saturday}</if>
+			<if test="sunday != null">and ksd.sunday = #{sunday}</if>
+	</select>
+    
+    <select id="selectMyKidsCarRaceInfoOne" resultType="hashmap">
+		select um.phone_no, um.name, um.lat as car_lat, um.lng as car_lng, cm.car_name, cm.state_flag, cm.driver_name, cm.car_number, csd.*, csd.lat as kids_station_lat, csd.lng as kids_station_lng from tb_kids_station_d ksd
+		inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station and ksd.seq_kids = #{seq_kids} and ksd.seq_kindergarden = #{seq_kindergarden} and csd.station_flag=#{station_flag}
+			<if test="monday != null">and ksd.monday = #{monday}</if>
+			<if test="tuesday != null">and ksd.tuesday = #{tuesday}</if>
+			<if test="wednesday != null">and ksd.wednesday = #{wednesday}</if>
+			<if test="thursday != null">and ksd.thursday = #{thursday}</if>
+			<if test="friday != null">and ksd.friday = #{friday}</if>
+			<if test="saturday != null">and ksd.saturday = #{saturday}</if>
+			<if test="sunday != null">and ksd.sunday = #{sunday}</if>
+		inner join tb_car_m cm on csd.seq_car = cm.seq_car
+		inner join tb_user_m um on cm.seq_user = um.seq_user
+	</select>
+    
+    <select id="updateCarRace" resultType="hashmap">
+		UPDATE
+			tb_car_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="state_flag != null"> state_flag = #{state_flag} </if>
+				<if test="seq_user != null">, seq_user = #{seq_user}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_car=#{seq_car}
+    </select>
+    
+    <select id="selectCarOne" resultType="hashmap">
+		select * from tb_car_m where seq_car = #{seq_car}
+    </select>
+    
+    <select id="selectPushCarRaceKidsUserList" resultType="hashmap">
+		select
+			distinct um.token
+		from
+			tb_apply_m am
+		    inner join tb_user_m um on am.seq_user = um.seq_user
+		where
+			seq_kids in (
+				select
+					seq_kids from tb_kids_station_d ksd
+				where
+					<if test="monday != null">ksd.monday = #{monday}</if>
+					<if test="tuesday != null">ksd.tuesday = #{tuesday}</if>
+					<if test="wednesday != null">ksd.wednesday = #{wednesday}</if>
+					<if test="thursday != null">ksd.thursday = #{thursday}</if>
+					<if test="friday != null">ksd.friday = #{friday}</if>
+					<if test="saturday != null">ksd.saturday = #{saturday}</if>
+					<if test="sunday != null">ksd.sunday = #{sunday}</if>
+					and ksd.seq_car_station in (
+						select
+							csd.seq_car_station
+						from
+							tb_car_station_d csd
+						where
+							csd.seq_car = #{seq_car}
+							and csd.station_flag = #{station_flag}
+					)
+				)
+    </select>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+    
+    <select id="selectRealStoryBroadCast" resultType="hashmap">
+		select * from (
+            select * from (
+             select
+              (select count(*) from tb_board sub_bo where sub_bo.BOARD_TYPE='RP' and bo.seq_board=sub_bo.seq_broadcast and sub_bo.VIEW_YN='Y' and sub_bo.IS_BLOCKED_YN='N' ) as REPLY_COUNT
+              ,bo.SEQ_BOARD
+              , (select count(seq_board) from tb_board where board_type='GD' and bo.seq_board=seq_broadcast and VIEW_YN='Y' and IS_BLOCKED_YN='N' ) as LIKE_COUNT
+              , bo.BOARD_DETAIL
+              , vi.SCREEN_FILE
+              , br.START_DATE
+              , br.END_DATE
+              , 'BM' as VIEW_TYPE
+              , br.BROADCAST_TITLE
+            from
+              TB_BOARD bo, TB_BROADCAST br, tb_video vi
+            where 
+              bo.BOARD_TYPE='BM'
+                and bo.SEQ_BROADCAST = br.SEQ_BROADCAST
+                and br.SEQ_VIDEO = vi.SEQ_VIDEO
+                order by start_date desc
+          )
+      
+                union all
+                
+                
+        select * from (     
+            select
+              (select count(*) from tb_board sub_bo where sub_bo.BOARD_TYPE='RP' and bo.seq_board=sub_bo.seq_broadcast and sub_bo.VIEW_YN='Y' and sub_bo.IS_BLOCKED_YN='N' ) as REPLY_COUNT
+              ,bo.SEQ_BOARD, (select count(seq_board) from tb_board where board_type='GD' and bo.seq_board=seq_broadcast and VIEW_YN='Y' and IS_BLOCKED_YN='N' ) as LIKE_COUNT
+              , bo.BOARD_DETAIL, vi.SCREEN_FILE, br.START_DATE
+              , br.END_DATE
+              , 'BT' as VIEW_TYPE, br.BROADCAST_TITLE
+            from
+              TB_BOARD bo, TB_BROADCAST br, tb_video vi
+            where 
+              bo.BOARD_TYPE='BT'
+                and bo.SEQ_BROADCAST = br.SEQ_BROADCAST
+                and br.SEQ_VIDEO = vi.SEQ_VIDEO
+                order by start_date desc
+             )
+         )    
+            union all
+         
+         select * from (
+            select
+              (select count(*) from tb_board sub_bo where sub_bo.BOARD_TYPE='RP' and bo.seq_board=sub_bo.seq_broadcast and sub_bo.VIEW_YN='Y' and sub_bo.IS_BLOCKED_YN='N' ) as REPLY_COUNT
+              ,bo.SEQ_BOARD, (select count(seq_board) from tb_board where board_type='GD' and bo.seq_board=seq_broadcast and VIEW_YN='Y' and IS_BLOCKED_YN='N' ) as LIKE_COUNT
+              , bo.BOARD_DETAIL, vi.SCREEN_FILE, br.START_DATE
+              , br.END_DATE
+              , 'BL' as VIEW_TYPE, br.BROADCAST_TITLE
+            from
+              TB_BOARD bo, TB_BROADCAST br, tb_video vi
+            where 
+              bo.BOARD_TYPE='BL'
+                and bo.SEQ_BROADCAST = br.SEQ_BROADCAST
+                and br.SEQ_VIDEO = vi.SEQ_VIDEO
+              order by bo.reg_date desc
+        )
+    </select>
+     
+    <select id="selectRealStoryStoreList" resultType="hashmap">
+         select
+		  st.SEQ_STORE, st.STORE_NAME, st.DELIVERY_AREA, ca.CATEGORY_NAME , st.ADDR_DETAIL
+		from
+		  tb_store st, TB_STORE_CATEGORY ca
+		where
+		  st.SEQ_STORE_CATEGORY = ca.SEQ_STORE_CATEGORY
+		  <if test="STORE_NAME != null"> and store_name like #{STORE_NAME} </if>
+		  <if test="CATEGORY_NAME != null and CATEGORY_NAME != '전체'.toString()">and ca.CATEGORY_NAME = #{CATEGORY_NAME} </if>
+		order by st.STORE_NAME
+    </select>
+    
+    
+    <select id="selectRealStorySearchArea" resultType="hashmap">
+         select ar3 from tb_area where ar2='유성구'
+    </select>
+    
+    
+    <select id="selectRealStorySearchStore" resultType="hashmap">
+        select
+		  st.SEQ_STORE, st.STORE_NAME, st.DELIVERY_AREA, ca.CATEGORY_NAME
+		from
+		  tb_store st, TB_STORE_CATEGORY ca, TB_AREA ar
+		where
+		  st.SEQ_STORE_CATEGORY = ca.SEQ_STORE_CATEGORY
+	      and ar.AREA_CODE = st.AREA_CODE
+	      <if test="AREA_TYPE != '전체'.toString()">
+	      and ar.AR3 like #{AREA_TYPE}
+	      </if>
+	      and st.STORE_NAME like #{SEARCH_TEXT}
+	      <if test="FOOD_TYPE != '00'.toString()">
+	      and st.SEQ_STORE_CATEGORY= #{FOOD_TYPE}
+	      </if>
+		order by st.STORE_NAME
+    </select>
+    
+    
+    
+    <insert id="insertRealStoryVideo">
+        INSERT INTO TB_VIDEO
+		(
+		<trim suffixOverrides=",">
+			<if test="SCREEN_FILE != null"> SCREEN_FILE, </if>
+			<if test="VIDEO_FILE != null"> VIDEO_FILE, </if>
+			<if test="REG_DATE == null"> REG_DATE </if>
+		</trim>
+		)VALUES(
+		<trim suffixOverrides=",">
+			<if test="SCREEN_FILE != null"> #{SCREEN_FILE} ,</if>
+			<if test="VIDEO_FILE != null"> #{VIDEO_FILE} ,</if>
+			<if test="REG_DATE == null"> sysdate </if>
+		</trim>
+		)
+		<selectKey resultType="int" keyProperty="SEQ_VIDEO" order="AFTER">
+		    <!-- SELECT LAST_INSERT_ID() -->
+		    SELECT SEQ_VIDEO.currval from dual
+		</selectKey>
+	</insert>
+    
+    
+    <insert id="insertRealStoryBroadCast">
+        INSERT INTO TB_BROADCAST
+		(
+		<trim suffixOverrides=",">
+			<if test="SEQ_VIDEO != null"> SEQ_VIDEO, </if>
+			<if test="BROADCAST_DETAIL != null"> BROADCAST_DETAIL, </if>
+			<if test="BROADCAST_TITLE != null"> BROADCAST_TITLE, </if>
+			<if test="START_DATE != null"> START_DATE, </if>
+			<if test="END_DATE != null"> END_DATE, </if>
+			<if test="REG_DATE == null"> REG_DATE </if>
+		</trim>
+		)VALUES(
+		<trim suffixOverrides=",">
+			<if test="SEQ_VIDEO != null"> #{SEQ_VIDEO} ,</if>
+			<if test="BROADCAST_DETAIL != null"> #{BROADCAST_DETAIL} ,</if>
+			<if test="BROADCAST_TITLE != null"> #{BROADCAST_TITLE}, </if>
+			<if test="START_DATE != null"> to_date(#{START_DATE}) ,</if>
+			<if test="END_DATE != null"> to_date(#{END_DATE}) ,</if>
+			<if test="REG_DATE == null"> sysdate </if>
+		</trim>
+		)
+		<selectKey resultType="int" keyProperty="SEQ_BROADCAST" order="AFTER">
+		    <!-- SELECT LAST_INSERT_ID() -->
+		    SELECT SEQ_BROADCAST.currval from dual
+		</selectKey>
+	</insert>
+    
+    
+    <insert id="insertRealStoryBoard">
+        INSERT INTO TB_BOARD
+		(
+		<trim suffixOverrides=",">
+			<if test="BOARD_DETAIL != null"> BOARD_DETAIL, </if>
+			<if test="SEQ_BROADCAST != null"> SEQ_BROADCAST, </if>
+			<if test="BOARD_TYPE != null"> BOARD_TYPE, </if>
+			<if test="REG_DATE == null"> REG_DATE </if>
+		</trim>
+		)VALUES(
+		<trim suffixOverrides=",">
+			<if test="BOARD_DETAIL != null"> #{BOARD_DETAIL} ,</if>
+			<if test="SEQ_BROADCAST != null"> #{SEQ_BROADCAST} ,</if>
+			<if test="BOARD_TYPE != null"> #{BOARD_TYPE} ,</if>
+			<if test="REG_DATE == null"> sysdate </if>
+		</trim>
+		)
+	</insert>
+	
+    <select id="selectOneRealStory" resultType="hashmap">
+         select
+		  bo.seq_board ,bo.BOARD_DETAIL, br.SEQ_BROADCAST, vi.SEQ_STORE, vi.SEQ_VIDEO, br.START_DATE, br.END_DATE, br.BROADCAST_DETAIL, br.BROADCAST_TITLE, vi.VIDEO_FILE, vi.SCREEN_FILE, bo.board_type
+		from
+		  tb_board bo, TB_BROADCAST br, TB_VIDEO vi
+		where
+		  br.SEQ_BROADCAST = bo.SEQ_BROADCAST
+		  and vi.SEQ_VIDEO = br.SEQ_VIDEO
+		  and bo.seq_board=#{SEQ_BOARD}
+    </select>
+    
+    
+    
+    <update id="updateRealStoryBroadCast">
+		UPDATE TB_BROADCAST
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="BROADCAST_DETAIL != null"> BROADCAST_DETAIL = #{BROADCAST_DETAIL}</if>
+					<if test="BROADCAST_DETAIL == null"> BROADCAST_DETAIL = null</if>
+					<if test="BROADCAST_TITLE != null">, BROADCAST_TITLE = #{BROADCAST_TITLE}</if>
+					<if test="START_DATE != null">, START_DATE = to_date(#{START_DATE}, 'yyyy-mm-dd')</if>
+					<if test="END_DATE != null">, END_DATE = to_date(#{END_DATE}, 'yyyy-mm-dd')</if>
+				</trim>
+			</set>
+		WHERE SEQ_BROADCAST=#{SEQ_BROADCAST}
+	</update>
+	
+	<update id="updateRealStoryVideo">
+           UPDATE TB_VIDEO
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="VIDEO_FILE != null"> VIDEO_FILE = #{VIDEO_FILE}</if>
+					<if test="SEQ_STORE != null">, SEQ_STORE = #{SEQ_STORE}</if>
+					<if test="SCREEN_FILE != null">, SCREEN_FILE = #{SCREEN_FILE}</if>
+				</trim>
+			</set>
+		WHERE SEQ_VIDEO=#{SEQ_VIDEO}
+    </update>
+
+	<update id="updateRealStoryBoard">
+           UPDATE TB_BOARD
+			<set>
+				<if test="BOARD_DETAIL != null"> BOARD_DETAIL = #{BOARD_DETAIL}</if>
+				<if test="BOARD_TYPE != null">, BOARD_TYPE = #{BOARD_TYPE}</if>
+			</set>
+		WHERE SEQ_BOARD=#{SEQ_BOARD}
+    </update>
+	
+	<select id="deleteRealStoryVideo" resultType="hashmap">
+	    DELETE FROM TB_VIDEO WHERE SEQ_VIDEO= (
+		  select SEQ_VIDEO from tb_video where seq_video= (
+		    select SEQ_VIDEO from TB_BROADCAST where SEQ_BROADCAST = (
+		      select seq_broadcast from tb_board where seq_board=#{SEQ_BOARD}
+		    )
+		  )
+		)
+    </select>
+    
+	<select id="deleteRealStoryBroadCast" resultType="hashmap">
+	       DELETE FROM tb_BROADCAST WHERE SEQ_BROADCAST= (
+			  select SEQ_BROADCAST from tb_BROADCAST where seq_broadcast= (
+			    select seq_broadcast from tb_board where seq_board=#{SEQ_BOARD}
+			  )
+			)
+    </select>
+	
+	<select id="deleteRealStoryBoard" resultType="hashmap">
+        DELETE FROM TB_BOARD WHERE seq_board=#{SEQ_BOARD}
+    </select>
+    
+	<select id="selectReplyRealStory" resultType="hashmap">
+	    select bo.BOARD_DETAIL, (select nickname from tb_user where seq_user = bo.seq_user) as nickname, reg_date from tb_board bo where bo.board_type = 'RP' and bo.seq_broadcast = #{SEQ_BOARD} order by bo.seq_board desc
+    </select>
+</mapper>

@@ -1,0 +1,1070 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="notice">
+	<insert id="insertNotice" useGeneratedKeys="true" keyProperty="seq_notice">
+		INSERT INTO tb_notice_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			<if test="file_path != null"> file_path, </if>
+			<if test="is_top != null"> is_top, </if>
+			<if test="is_reply != null"> is_reply, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="file_path != null"> #{file_path} ,</if>
+			<if test="is_top != null"> #{is_top} ,</if>
+			<if test="is_reply != null"> #{is_reply} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateNotice" resultType="hashmap">
+		UPDATE
+			tb_notice_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden != null"> seq_kindergarden = #{seq_kindergarden} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="title != null">, title = #{title}</if>
+				<if test="content != null">, content = #{content}</if>
+				<if test="file_path != null">, file_path = #{file_path}</if>
+				<if test="is_top != null">, is_top = #{is_top}</if>
+				<if test="is_reply != null">, is_reply = #{is_reply}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_notice=#{seq_notice}
+    </select>
+	
+	<select id="deleteNotice" resultType="hashmap">
+    	DELETE FROM tb_notice_m WHERE seq_notice=#{seq_notice}
+    </select>
+	
+	<select id="selectNoticeList" resultType="hashmap">
+		SELECT
+			am.authority, nm.*, um.name
+		FROM
+			tb_notice_m nm
+			inner join tb_user_m um on nm.seq_user = um.seq_user
+			inner join tb_auth_m am on nm.seq_user = am.seq_user
+		WHERE
+			nm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null"> and (nm.seq_kindergarden_class = #{seq_kindergarden_class} or nm.seq_kindergarden_class = 0)</if>
+		order by nm.seq_notice desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectTopNoticeList" resultType="hashmap">
+		SELECT
+			nm.*, um.name
+		FROM
+			tb_notice_m nm inner join tb_user_m um on nm.seq_user = um.seq_user
+		WHERE
+			nm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null"> and (nm.seq_kindergarden_class = #{seq_kindergarden_class} or nm.seq_kindergarden_class = 0)</if>
+			and nm.is_top = 'y'
+		order by nm.seq_notice desc
+	</select>
+	
+	<select id="selectNoticeOne" resultType="hashmap">
+		SELECT
+			am.authority, nm.*, um.name, um.user_image
+		FROM
+			tb_notice_m nm
+			inner join tb_user_m um on nm.seq_user = um.seq_user
+			inner join tb_auth_m am on nm.seq_user = am.seq_user
+		WHERE
+			nm.seq_notice = #{seq_notice}
+	</select>
+	
+	<insert id="insertSurvey" useGeneratedKeys="true" keyProperty="seq_survey">
+		INSERT INTO tb_survey_m (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			<if test="year != null"> year, </if>
+			<if test="month != null"> month, </if>
+			<if test="day != null"> day, </if>
+			<if test="is_top != null"> is_top, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="year != null"> #{year} ,</if>
+			<if test="month != null"> #{month} ,</if>
+			<if test="day != null"> #{day} ,</if>
+			<if test="is_top != null"> #{is_top} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateSurvey" resultType="hashmap">
+		UPDATE
+			tb_survey_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_survey != null"> seq_survey = #{seq_survey} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="title != null">, title = #{title}</if>
+				<if test="content != null">, content = #{content}</if>
+				<if test="year != null">, year = #{year}</if>
+				<if test="month != null">, month = #{month}</if>
+				<if test="day != null">, day = #{day}</if>
+				<if test="is_top != null">, is_top = #{is_top}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_survey=#{seq_survey}
+    </select>
+    
+    <select id="deleteSurvey" resultType="hashmap">
+    	DELETE FROM tb_survey_m WHERE seq_survey=#{seq_survey}
+    </select>
+	
+	<insert id="insertSurveyVoteItem">
+		INSERT INTO tb_survey_vote_item_d (
+		<trim suffixOverrides=",">
+			<if test="seq_survey != null"> seq_survey, </if>
+			<if test="vote_item != null"> vote_item, </if>
+			<if test="vote_flag != null"> vote_flag, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_survey != null"> #{seq_survey} ,</if>
+			<if test="vote_item != null"> #{vote_item} ,</if>
+			<if test="vote_flag != null"> #{vote_flag} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="deleteSurveyVoteItem" resultType="hashmap">
+    	DELETE FROM tb_survey_vote_item_d WHERE seq_survey=#{seq_survey}
+    </select>
+	
+	<select id="selectSurveyList" resultType="hashmap">
+		SELECT
+			am.authority, um.name, sm.*
+		FROM
+			tb_survey_m sm
+			inner join tb_user_m um on sm.seq_user = um.seq_user
+			inner join tb_auth_m am on sm.seq_user = am.seq_user
+		WHERE
+			sm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null">and (sm.seq_kindergarden_class = #{seq_kindergarden_class} or sm.seq_kindergarden_class = 0)</if>
+		order by sm.seq_survey desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectTopSurveyList" resultType="hashmap">
+		SELECT
+			um.name, sm.*
+		FROM
+			tb_survey_m sm
+			inner join tb_user_m um on sm.seq_user = um.seq_user
+		WHERE
+			sm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null">and (sm.seq_kindergarden_class = #{seq_kindergarden_class} or sm.seq_kindergarden_class = 0)</if>
+			and sm.is_top = 'y'
+		order by sm.seq_survey desc
+	</select>
+	
+	<select id="selectSurveyOne" resultType="hashmap">
+		SELECT
+			am.authority, sm.*, um.name, um.user_image
+		FROM
+			tb_survey_m sm
+		    inner join tb_user_m um on sm.seq_user = um.seq_user
+		    inner join tb_auth_m am on sm.seq_user = am.seq_user
+		WHERE
+			sm.seq_survey = #{seq_survey}
+	</select>
+	
+	<select id="selectSurveyVoteItemList" resultType="hashmap">
+		SELECT
+			svid.*, ( select count(svd.seq_survey_vote) from tb_survey_vote_d svd where svid.seq_survey = svd.seq_survey and svid.seq_survey_vote_item = svd.seq_survey_vote_item ) as vote_count
+			<if test="seq_kids != null">
+				, svd2.seq_survey_vote
+			</if>
+		FROM
+			tb_survey_vote_item_d svid
+			<if test="seq_kids != null">
+				left outer join tb_survey_vote_d svd2 on svid.seq_survey = svd2.seq_survey and svid.seq_survey_vote_item = svd2.seq_survey_vote_item and svd2.seq_user = #{seq_user} and svd2.seq_kids = #{seq_kids}
+			</if>
+		WHERE
+			svid.seq_survey = #{seq_survey}
+		order by svid.seq_survey_vote_item asc
+	</select>
+	
+	<insert id="insertEducationalPlan" useGeneratedKeys="true" keyProperty="seq_educational_plan">
+		INSERT INTO tb_educational_plan_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			<if test="file_path != null"> file_path, </if>
+			<if test="plan_flag != null"> plan_flag, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="file_path != null"> #{file_path} ,</if>
+			<if test="plan_flag != null"> #{plan_flag} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateEducationalPlan" resultType="hashmap">
+		UPDATE
+			tb_educational_plan_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden != null"> seq_kindergarden = #{seq_kindergarden} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="title != null">, title = #{title}</if>
+				<if test="content != null">, content = #{content}</if>
+				<if test="file_path != null">, file_path = #{file_path}</if>
+				<if test="plan_flag != null">, plan_flag = #{plan_flag}</if>
+				<if test="is_reply != null">, is_reply = #{is_reply}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_educational_plan=#{seq_educational_plan}
+    </select>
+	
+	<select id="deleteEducationalPlan" resultType="hashmap">
+    	DELETE FROM tb_educational_plan_m WHERE seq_educational_plan=#{seq_educational_plan}
+    </select>
+	
+	<select id="selectEducationalPlanList" resultType="hashmap">
+		SELECT
+			am.authority, epm.*, um.name
+		FROM
+			tb_educational_plan_m epm
+			inner join tb_user_m um on epm.seq_user = um.seq_user
+			inner join tb_auth_m am on epm.seq_user = am.seq_user
+		WHERE
+			epm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null">and (epm.seq_kindergarden_class = #{seq_kindergarden_class} or epm.seq_kindergarden_class = 0) </if>
+			and epm.plan_flag = #{plan_flag}
+		order by epm.seq_educational_plan desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectEducationalPlanOne" resultType="hashmap">
+		SELECT
+			am.authority, um.name, em.*, um.user_image
+		FROM
+			tb_educational_plan_m em
+			inner join tb_user_m um on em.seq_user = um.seq_user
+			inner join tb_auth_m am on em.seq_user = am.seq_user
+		WHERE
+			em.seq_educational_plan = #{seq_educational_plan}
+	</select>
+	
+	<insert id="insertMedicationRequest" useGeneratedKeys="true" keyProperty="seq_medication_request">
+		INSERT INTO tb_medication_request_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_user_parent != null"> seq_user_parent, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="seq_user_teacher != null"> seq_user_teacher, </if>
+			<if test="symptom != null"> symptom, </if>
+			<if test="medicine_type != null"> medicine_type, </if>
+			<if test="dosage != null"> dosage, </if>
+			<if test="dosage_time != null"> dosage_time, </if>
+			<if test="keep_method != null"> keep_method, </if>
+			<if test="uniqueness != null"> uniqueness, </if>
+			<if test="append_image != null"> append_image, </if>
+			<if test="sign_image != null"> sign_image, </if>
+			<if test="year != null"> year, </if>
+			<if test="month != null"> month, </if>
+			<if test="day != null"> day, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_user_parent != null"> #{seq_user_parent} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="seq_user_teacher != null"> #{seq_user_teacher} ,</if>
+			<if test="symptom != null"> #{symptom} ,</if>
+			<if test="medicine_type != null"> #{medicine_type} ,</if>
+			<if test="dosage != null"> #{dosage} ,</if>
+			<if test="dosage_time != null"> #{dosage_time} ,</if>
+			<if test="keep_method != null"> #{keep_method} ,</if>
+			<if test="uniqueness != null"> #{uniqueness} ,</if>
+			<if test="append_image != null"> #{append_image} ,</if>
+			<if test="sign_image != null"> #{sign_image} ,</if>
+			<if test="year != null"> #{year} ,</if>
+			<if test="month != null"> #{month} ,</if>
+			<if test="day != null"> #{day} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateMedicationRequest" resultType="hashmap">
+		UPDATE
+			tb_medication_request_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden != null"> seq_kindergarden = #{seq_kindergarden} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="seq_user_teacher != null">, seq_user_teacher = #{seq_user_teacher}</if>
+				<if test="symptom != null">, symptom = #{symptom}</if>
+				<if test="medicine_type != null">, medicine_type = #{medicine_type}</if>
+				<if test="dosage != null">, dosage = #{dosage}</if>
+				<if test="dosage_time != null">, dosage_time = #{dosage_time}</if>
+				<if test="keep_method != null">, keep_method = #{keep_method}</if>
+				<if test="uniqueness != null">, uniqueness = #{uniqueness}</if>
+				<if test="append_image != null">, append_image = #{append_image}</if>
+				<if test="sign_image != null">, sign_image = #{sign_image}</if>
+				<if test="year != null">, year = #{year}</if>
+				<if test="month != null">, month = #{month}</if>
+				<if test="day != null">, day = #{day}</if>
+				<if test="is_reply != null">, is_reply = #{is_reply}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_medication_request=#{seq_medication_request}
+    </select>
+	
+	<select id="deleteMedicationRequest" resultType="hashmap">
+    	DELETE FROM tb_medication_request_m WHERE seq_medication_request=#{seq_medication_request}
+    </select>
+	
+	<select id="selectMedicationRequestList" resultType="hashmap">
+		select
+			kd.kids_name, kcd.kindergarden_class_name , mrm.*
+		from
+			tb_medication_request_m mrm
+			inner join tb_kindergarden_class_d kcd on mrm.seq_kindergarden_class = kcd.seq_kindergarden_class
+			inner join tb_kids_d kd on mrm.seq_kids = kd.seq_kids
+		where
+			mrm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != '0'.toString()">and mrm.seq_kindergarden_class = #{seq_kindergarden_class} </if>
+			<if test="seq_user_parent != null">and mrm.seq_user_parent = #{seq_user_parent} </if>
+			<if test="seq_kids != null">and kd.seq_kids = #{seq_kids} </if>
+		    <if test="year != null">and mrm.year = #{year} </if>
+			<if test="month != null">and mrm.month = #{month} </if>
+		    <if test="day != null">and mrm.day = #{day} </if>
+		order by mrm.seq_medication_request desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectMedicationRequestOne" resultType="hashmap">
+		select
+			td.name_title, um.name as parent_name, kd.kids_name, kcd.kindergarden_class_name , mrm.*
+		from
+			tb_medication_request_m mrm
+			inner join tb_kindergarden_class_d kcd on mrm.seq_kindergarden_class = kcd.seq_kindergarden_class
+			inner join tb_kids_d kd on mrm.seq_kids = kd.seq_kids
+			inner join tb_user_m um on mrm.seq_user_parent = um.seq_user
+			left outer join tb_title_d td on mrm.seq_user_parent = td.seq_user and mrm.seq_kids = td.seq_kids
+		where
+			mrm.seq_medication_request = #{seq_medication_request}
+	</select>
+	
+	<select id="checkHomeRequestCount" resultType="java.lang.Integer">
+		select
+			count(*)
+		from
+			tb_home_request_m hrm
+		where
+			hrm.seq_kids=#{seq_kids}
+			and hrm.seq_kindergarden=#{seq_kindergarden}
+			and hrm.year=#{year}
+			and hrm.month=#{month}
+			and hrm.day = #{day}
+	</select>
+	
+	<insert id="insertHomeRequest" useGeneratedKeys="true" keyProperty="seq_home_request">
+		INSERT INTO tb_home_request_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_user_parent != null"> seq_user_parent, </if>
+			<if test="seq_user_teacher != null"> seq_user_teacher, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			
+			<if test="home_reason != null"> home_reason, </if>
+			<if test="home_time != null"> home_time, </if>
+			<if test="home_method != null"> home_method, </if>
+			<if test="companion != null"> companion, </if>
+			<if test="tel_no != null"> tel_no, </if>
+			<if test="uniqueness != null"> uniqueness, </if>
+			<if test="append_image != null"> append_image, </if>
+			<if test="sign_image != null"> sign_image, </if>
+			<if test="year != null"> year, </if>
+			<if test="month != null"> month, </if>
+			<if test="day != null"> day, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_user_parent != null"> #{seq_user_parent} ,</if>
+			<if test="seq_user_teacher != null"> #{seq_user_teacher} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			
+			<if test="home_reason != null"> #{home_reason} ,</if>
+			<if test="home_time != null"> #{home_time} ,</if>
+			<if test="home_method != null"> #{home_method} ,</if>
+			<if test="companion != null"> #{companion} ,</if>
+			<if test="tel_no != null"> #{tel_no} ,</if>
+			<if test="uniqueness != null"> #{uniqueness} ,</if>
+			<if test="append_image != null"> #{append_image} ,</if>
+			<if test="sign_image != null"> #{sign_image} ,</if>
+			<if test="year != null"> #{year} ,</if>
+			<if test="month != null"> #{month} ,</if>
+			<if test="day != null"> #{day} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateHomeRequest" resultType="hashmap">
+		UPDATE
+			tb_home_request_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden != null"> seq_kindergarden = #{seq_kindergarden} </if>
+				<if test="seq_kindergarden_class != null">, seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="seq_user_teacher != null">, seq_user_teacher = #{seq_user_teacher}</if>
+				
+				<if test="home_reason != null">, home_reason = #{home_reason}</if>
+				<if test="home_time != null">, home_time = #{home_time}</if>
+				<if test="home_method != null">, home_method = #{home_method}</if>
+				<if test="companion != null">, companion = #{companion}</if>
+				<if test="tel_no != null">, tel_no = #{tel_no}</if>
+				<if test="uniqueness != null">, uniqueness = #{uniqueness}</if>
+				<if test="append_image != null">, append_image = #{append_image}</if>
+				<if test="sign_image != null">, sign_image = #{sign_image}</if>
+				<if test="year != null">, year = #{year}</if>
+				<if test="month != null">, month = #{month}</if>
+				<if test="day != null">, day = #{day}</if>
+				<if test="is_reply != null">, is_reply = #{is_reply}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_home_request=#{seq_home_request}
+    </select>
+	
+	<select id="deleteHomeRequest" resultType="hashmap">
+    	DELETE FROM tb_home_request_m WHERE seq_home_request=#{seq_home_request}
+    </select>
+	
+	<select id="selectHomeRequestList" resultType="hashmap">
+		select
+			kd.kids_name, kcd.kindergarden_class_name , mrm.*
+		from
+			tb_home_request_m mrm
+			inner join tb_kindergarden_class_d kcd on mrm.seq_kindergarden_class = kcd.seq_kindergarden_class
+			inner join tb_kids_d kd on mrm.seq_kids = kd.seq_kids
+		where
+			mrm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null">and mrm.seq_kindergarden_class = #{seq_kindergarden_class} </if>
+			<if test="seq_user_parent != null">and mrm.seq_user_parent = #{seq_user_parent} </if>
+			<if test="seq_kids != null">and kd.seq_kids = #{seq_kids} </if>
+		    <if test="year != null">and mrm.year = #{year} </if>
+			<if test="month != null">and mrm.month = #{month} </if>
+		    <if test="day != null">and mrm.day = #{day} </if>
+		order by mrm.seq_home_request desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectHomeRequestOne" resultType="hashmap">
+		select
+			td.name_title, um.name as parent_name, kd.kids_name, kcd.kindergarden_class_name , mrm.*
+		from
+			tb_home_request_m mrm
+			inner join tb_kindergarden_class_d kcd on mrm.seq_kindergarden_class = kcd.seq_kindergarden_class
+			inner join tb_kids_d kd on mrm.seq_kids = kd.seq_kids
+			inner join tb_user_m um on mrm.seq_user_parent = um.seq_user
+			left outer join tb_title_d td on mrm.seq_user_parent = td.seq_user and mrm.seq_kids = td.seq_kids
+		where
+			mrm.seq_home_request = #{seq_home_request}
+	</select>
+	
+	<insert id="insertScheduleManagement" useGeneratedKeys="true" keyProperty="seq_schedule_management">
+		INSERT INTO tb_schedule_management_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			
+			<if test="start_year != null"> start_year, </if>
+			<if test="start_month != null"> start_month, </if>
+			<if test="start_day != null"> start_day, </if>
+			<if test="end_year != null"> end_year, </if>
+			<if test="end_month != null"> end_month, </if>
+			<if test="end_day != null"> end_day, </if>
+			<if test="start_time_hour != null"> start_time_hour, </if>
+			<if test="start_time_min != null"> start_time_min, </if>
+			<if test="end_time_hour != null"> end_time_hour, </if>
+			<if test="end_time_min != null"> end_time_min, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			<if test="file_path != null"> file_path, </if>
+			<if test="lat != null"> lat, </if>
+			<if test="lng != null"> lng, </if>
+			<if test="addr != null"> addr, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			
+			<if test="start_year != null"> #{start_year} ,</if>
+			<if test="start_month != null"> #{start_month} ,</if>
+			<if test="start_day != null"> #{start_day} ,</if>
+			<if test="end_year != null"> #{end_year} ,</if>
+			<if test="end_month != null"> #{end_month} ,</if>
+			<if test="end_day != null"> #{end_day} ,</if>
+			<if test="start_time_hour != null"> #{start_time_hour} ,</if>
+			<if test="start_time_min != null"> #{start_time_min} ,</if>
+			<if test="end_time_hour != null"> #{end_time_hour} ,</if>
+			<if test="end_time_min != null"> #{end_time_min} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="file_path != null"> #{file_path} ,</if>
+			<if test="lat != null"> #{lat} ,</if>
+			<if test="lng != null"> #{lng} ,</if>
+			<if test="addr != null"> #{addr} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateScheduleManagement" resultType="hashmap">
+		UPDATE
+			tb_schedule_management_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden_class != null"> seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				
+				<if test="start_year != null">, start_year = #{start_year} </if>
+				<if test="start_month != null">, start_month = #{start_month} </if>
+				<if test="start_day != null">, start_day = #{start_day}</if>
+				
+				<if test="end_year != null">, end_year = #{end_year}</if>
+				<if test="end_month != null">, end_month = #{end_month}</if>
+				<if test="end_day != null">, end_day = #{end_day}</if>
+				
+				<if test="start_time_hour != null">, start_time_hour = #{start_time_hour}</if>
+				<if test="start_time_min != null">, start_time_min = #{start_time_min}</if>
+				<if test="end_time_hour != null">, end_time_hour = #{end_time_hour}</if>
+				<if test="end_time_min != null">, end_time_min = #{end_time_min}</if>
+				<if test="title != null">, title = #{title}</if>
+				<if test="content != null">, content = #{content}</if>
+				<if test="file_path != null">, file_path = #{file_path}</if>
+				<if test="lat != null">, lat = #{lat}</if>
+				<if test="lng != null">, lng = #{lng}</if>
+				<if test="addr != null">, addr = #{addr}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_schedule_management=#{seq_schedule_management}
+    </select>
+	
+	<select id="deleteScheduleManagement" resultType="hashmap">
+    	DELETE FROM tb_schedule_management_m WHERE seq_schedule_management=#{seq_schedule_management}
+    </select>
+	
+	<select id="selectScheduleManagementList" resultType="hashmap">
+		select
+			um.name, smm.* from tb_schedule_management_m smm
+			inner join tb_user_m um on smm.seq_user = um.seq_user
+		where
+			smm.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != null">and seq_kindergarden_class = #{seq_kindergarden_class}</if>
+			and CONCAT(smm.start_year, smm.start_month) <![CDATA[<=]]> #{yearmonth} and CONCAT(smm.end_year, smm.end_month) <![CDATA[>=]]> #{yearmonth}
+		order by smm.start_year asc, smm.start_month asc, smm.start_day asc
+	</select>
+	
+	<select id="selectScheduleManagementOne" resultType="hashmap">
+		select
+			am.authority, um.name, smm.*, um.user_image
+		from
+			tb_schedule_management_m smm
+			inner join tb_user_m um on smm.seq_user = um.seq_user
+			inner join tb_auth_m am on smm.seq_user = am.seq_user
+		where
+			smm.seq_schedule_management = #{seq_schedule_management}
+	</select>
+	
+	<insert id="insertMenuManagement" useGeneratedKeys="true" keyProperty="seq_menu_management">
+		INSERT INTO tb_menu_management_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			
+			<if test="year != null"> year, </if>
+			<if test="month != null"> month, </if>
+			<if test="day != null"> day, </if>
+			
+			<if test="type != null"> type, </if>
+			<if test="rice != null"> rice, </if>
+			<if test="soup != null"> soup, </if>
+			<if test="side_dish_1 != null"> side_dish_1, </if>
+			<if test="side_dish_2 != null"> side_dish_2, </if>
+			<if test="side_dish_3 != null"> side_dish_3, </if>
+			<if test="side_dish_4 != null"> side_dish_4, </if>
+			<if test="side_dish_5 != null"> side_dish_5, </if>
+			<if test="snack != null"> snack, </if>
+			<if test="memo != null"> memo, </if>
+			<if test="file_path != null"> file_path, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			
+			<if test="year != null"> #{year} ,</if>
+			<if test="month != null"> #{month} ,</if>
+			<if test="day != null"> #{day} ,</if>
+			
+			<if test="type != null"> #{type} ,</if>
+			<if test="rice != null"> #{rice} ,</if>
+			<if test="soup != null"> #{soup} ,</if>
+			<if test="side_dish_1 != null"> #{side_dish_1} ,</if>
+			<if test="side_dish_2 != null"> #{side_dish_2} ,</if>
+			<if test="side_dish_3 != null"> #{side_dish_3} ,</if>
+			<if test="side_dish_4 != null"> #{side_dish_4} ,</if>
+			<if test="side_dish_5 != null"> #{side_dish_5} ,</if>
+			<if test="snack != null"> #{snack} ,</if>
+			<if test="memo != null"> #{memo} ,</if>
+			<if test="file_path != null"> #{file_path} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateMenuManagement" resultType="hashmap">
+		UPDATE
+			tb_menu_management_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kindergarden_class != null"> seq_kindergarden_class = #{seq_kindergarden_class} </if>
+				<if test="year != null">, year = #{year} </if>
+				<if test="month != null">, month = #{month}</if>
+				<if test="day != null">, day = #{day}</if>
+				
+				<if test="type != null">, type = #{type}</if>
+				<if test="rice != null">, rice = #{rice}</if>
+				<if test="soup != null">, soup = #{soup}</if>
+				<if test="side_dish_1 != null">, side_dish_1 = #{side_dish_1}</if>
+				<if test="side_dish_2 != null">, side_dish_2 = #{side_dish_2}</if>
+				<if test="side_dish_3 != null">, side_dish_3 = #{side_dish_3}</if>
+				<if test="side_dish_4 != null">, side_dish_4 = #{side_dish_4}</if>
+				<if test="side_dish_5 != null">, side_dish_5 = #{side_dish_5}</if>
+				<if test="snack != null">, snack = #{snack}</if>
+				<if test="memo != null">, memo = #{memo}</if>
+				<if test="file_path != null">, file_path = #{file_path}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_menu_management=#{seq_menu_management}
+    </select>
+	
+	<select id="deleteMenuManagement" resultType="hashmap">
+    	DELETE FROM tb_menu_management_m WHERE seq_menu_management=#{seq_menu_management}
+    </select>
+	
+	<select id="selectMenuManagementList" resultType="hashmap">
+		select
+			*
+		from
+			tb_menu_management_m
+		where
+			seq_kindergarden = #{seq_kindergarden}
+			and year = #{year}
+			and month = #{month}
+		order by year asc, month asc, day asc
+	</select>
+	
+	<select id="selectMenuManagementOne" resultType="hashmap">
+		select
+			*
+		from
+			tb_menu_management_m
+		where
+			seq_menu_management = #{seq_menu_management}
+	</select>
+	
+	<insert id="insertConfirm" useGeneratedKeys="true" keyProperty="seq_confirm">
+		INSERT INTO tb_confirm_d (
+		<trim suffixOverrides=",">
+			<if test="seq != null"> seq, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			
+			<if test="confirm_flag != null"> confirm_flag, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq != null"> #{seq} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			
+			<if test="confirm_flag != null"> #{confirm_flag} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="selectConfirmCheck" resultType="hashmap">
+		select
+			*
+		from
+			tb_confirm_d
+		where
+			seq = #{seq}
+			and seq_user = #{seq_user}
+			and seq_kids = #{seq_kids} 
+			and confirm_flag = #{confirm_flag} 
+	</select>
+	
+	<select id="selectConfirmAll" resultType="hashmap">
+		select 
+			(
+		    select
+				count(seq_apply)
+			from
+				tb_apply_m
+			where
+				seq_kindergarden = #{seq_kindergarden}
+				<if test="seq_kindergarden_class != null"> and seq_kindergarden_class = #{seq_kindergarden_class}</if>
+				and rep_flag='y'
+		        and req_flag='p'
+			) as all_count
+		    ,
+		    (
+		    select
+				count(seq_confirm)
+			from
+				tb_confirm_d
+			where
+				seq = #{seq}
+				and confirm_flag = #{confirm_flag}
+			) as confirm_count
+		from
+			dual
+	</select>
+	
+	<select id="selectSurveyVoteCheck" resultType="java.lang.Integer">
+		select
+			count(seq_survey_vote)
+		from
+			tb_survey_vote_d
+		where
+			seq_survey = #{seq_survey}
+			<if test="seq_user != null">and seq_user = #{seq_user}</if>
+			<if test="seq_kids != null">and seq_kids = #{seq_kids}</if>
+	</select>
+	
+	<insert id="insertSurveyVote" useGeneratedKeys="true" keyProperty="seq_confirm">
+		INSERT INTO tb_survey_vote_d (
+		<trim suffixOverrides=",">
+			<if test="seq_survey != null"> seq_survey, </if>
+			<if test="seq_survey_vote_item != null"> seq_survey_vote_item, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_survey != null"> #{seq_survey} ,</if>
+			<if test="seq_survey_vote_item != null"> #{seq_survey_vote_item} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<insert id="insertNews">
+		INSERT INTO tb_news_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			
+			<if test="msg_type != null"> msg_type, </if>
+			<if test="seq != null"> seq, </if>
+			<if test="subtitle != null"> subtitle, </if>
+			<if test="title != null"> title, </if>
+			
+			<if test="is_personal != null"> is_personal, </if>
+			<if test="seq_user_teacher != null"> seq_user_teacher, </if>
+			
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			
+			<if test="msg_type != null"> #{msg_type} ,</if>
+			<if test="seq != null"> #{seq} ,</if>
+			<if test="subtitle != null"> #{subtitle} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			
+			<if test="is_personal != null"> #{is_personal} ,</if>
+			<if test="seq_user_teacher != null"> #{seq_user_teacher} ,</if>
+			
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="selectPushKindergardenClassList" resultType="hashmap">
+		select * from tb_apply_m am
+		inner join tb_user_m um on am.seq_user = um.seq_user
+		and am.seq_kindergarden = #{seq_kindergarden}
+		<if test="seq_kindergarden_class != '0'.toString()"> and am.seq_kindergarden_class = #{seq_kindergarden_class} </if>
+		and am.rep_flag = 'y'
+		and um.seq_user not in (${seq_user})
+		group by token
+	</select>
+	
+	<select id="selectPushKidsTeacherList" resultType="hashmap">
+		select
+			um.token
+		from
+			tb_apply_m am
+		    inner join tb_user_m um on am.seq_user = um.seq_user
+		where
+			am.seq_kindergarden = #{seq_kindergarden}
+		    <if test="seq_kindergarden_class != '0'.toString()"> and seq_kindergarden_class = #{seq_kindergarden_class} </if>
+		    and am.rep_flag = 'y'
+		    and am.req_flag = 't'
+	</select>
+	
+	<select id="selectPushKidsOneToList" resultType="hashmap">
+		select
+			distinct um.token
+		from
+			tb_kids_d kd
+		inner join tb_user_m um on kd.seq_user = um.seq_user and kd.seq_kids = #{seq_kids}
+	</select>
+	
+	
+	
+	
+	
+	
+	<!-- <select id="selectPushTeacherList" resultType="hashmap"> 담임 전체
+		select
+			um.token
+		from
+			tb_apply_m am
+		    inner join tb_user_m um on am.seq_user = um.seq_user
+		where
+			am.seq_kindergarden = #{seq_kindergarden}
+		    <if test="seq_kindergarden_class != null"> and seq_kindergarden_class = #{seq_kindergarden_class} </if>
+		    and am.rep_flag = 'y'
+		    and am.req_flag = 't'
+	</select> -->
+	
+	
+	
+	
+<!-- 	, trim(concat(ifnull(kd.kids_name, ''), ' ' ,nw.subtitle)) as subtitle -->
+	<select id="selectNewsList" resultType="hashmap">
+		select
+			kd.kids_name, td.name_title, am.authority, um.name, nw.seq_kids, nw.seq_news, nw.msg_type, nw.seq, nw.subtitle, nw.title, nw.year, nw.month, nw.day, nw.reg_date
+		from
+			tb_news_m nw
+			inner join tb_user_m um on nw.seq_user = um.seq_user
+			inner join tb_auth_m am on nw.seq_user = am.seq_user
+			left outer join tb_kids_d kd on nw.seq_kids = kd.seq_kids
+			left outer join tb_title_d td on nw.seq_user = td.seq_user and nw.seq_kids = td.seq_kids
+		where 
+			nw.seq_kindergarden = #{seq_kindergarden}
+			and (nw.seq_kindergarden_class = #{seq_kindergarden_class} or nw.seq_kindergarden_class = 0)
+			<if test="seq_kids != null"> and (nw.seq_kids =#{seq_kids}  or nw.seq_kids = 0)  </if>
+			and (nw.is_personal = 'n' or (nw.is_personal = 'y' and nw.seq_user_teacher = #{seq_user}) )
+		order by nw.seq_news desc
+		LIMIT ${(page-1)*15}, 15
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+    <select id="selectNotice" resultType="hashmap">
+        select * from TB_NOTICE
+    </select>
+    
+    <select id="selectNoticeEvent" resultType="hashmap">
+    	select * from (
+	        select seq_event as SEQ_KEY, event_title as TITLE, event_detail as DETAIL, reg_date, apply_yn, start_date, end_date, 'EV' as SELECT_TYPE from tb_event
+	
+			union all
+			
+			select
+				SEQ_NOTICE as SEQ_KEY, TITLE, DETAIL, REG_DATE, APPLY_YN, START_DATE, END_DATE, 'NO' as SELECT_TYPE from tb_notice
+        ) order by reg_date desc
+    </select>
+    
+    <select id="selectOneNoticeEvent" resultType="hashmap">
+        <if test="SELECT_TYPE == 'NO'.toString()">
+            select SEQ_NOTICE as SEQ_KEY, TITLE, DETAIL, REG_DATE, APPLY_YN, START_DATE, END_DATE, 'NO' as SELECT_TYPE from tb_notice where seq_notice= #{SEQ_KEY}
+        </if>
+     	<if test="SELECT_TYPE == 'EV'.toString()">
+     	    select SEQ_EVENT as SEQ_KEY, event_title as TITLE, event_detail as DETAIL, reg_date, apply_yn, start_date, end_date, 'EV' as SELECT_TYPE from tb_event where seq_event= #{SEQ_KEY}
+    	</if>
+    </select>
+    
+    <update id="updateNoticeEvent">
+        <if test="SELECT_TYPE=='NO'.toString()">
+            UPDATE
+				TB_NOTICE
+				
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="TITLE != null"> TITLE=#{TITLE} </if>
+					<if test="DETAIL != null">, DETAIL=#{DETAIL} </if>
+					<if test="START_DATE != null">, START_DATE=to_date(#{START_DATE})</if>
+					<if test="END_DATE != null">, END_DATE=to_date(#{END_DATE})</if>
+					<if test="END_DATE == null">, END_DATE=null</if>
+				</trim>
+			</set>
+			   
+			WHERE
+				SEQ_NOTICE=#{SEQ_KEY}
+        </if>
+        <if test="SELECT_TYPE=='EV'.toString()">
+            UPDATE
+				TB_EVENT
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="TITLE != null"> EVENT_TITLE=#{TITLE} </if>
+					<if test="DETAIL != null">, EVENT_DETAIL=#{DETAIL} </if>
+					<if test="START_DATE != null">, START_DATE=to_date(#{START_DATE}) </if>
+					<if test="END_DATE != null">, END_DATE=to_date(#{END_DATE})</if>
+					<if test="END_DATE == null">, END_DATE=null</if>
+				</trim>
+			</set>
+			   
+			WHERE
+				SEQ_EVENT=#{SEQ_KEY}
+        </if>
+	</update>
+	
+    
+    <update id="editCheckExpose">
+        <if test="SELECT_TYPE=='NO'.toString()">
+            UPDATE
+				TB_NOTICE
+			SET
+			 	<if test="APPLY_YN =='Y'.toString()"> APPLY_YN='N' </if>
+				<if test="APPLY_YN =='N'.toString()"> APPLY_YN='Y' </if>
+			WHERE
+				SEQ_NOTICE=#{SEQ_KEY}
+        </if>
+        <if test="SELECT_TYPE=='EV'.toString()">
+            UPDATE
+				TB_EVENT
+			SET
+				<if test="APPLY_YN =='Y'.toString()"> APPLY_YN='N' </if>
+				<if test="APPLY_YN =='N'.toString()"> APPLY_YN='Y' </if>
+			WHERE
+				SEQ_EVENT=#{SEQ_KEY}
+        </if>
+	</update>
+    
+    <select id="checkNoticeCount" resultType="hashmap">
+			<!-- select 
+				(select count(*) from TB_NOTICE where APPLY_YN='Y' and trunc(sysdate) >= START_DATE and trunc(sysdate) <= END_DATE )
+				    +
+				(select count(*) from tb_event where APPLY_YN='Y' and START_DATE <= trunc(sysdate) and tb_event.END_DATE >= trunc(sysdate) ) as NOTICE_COUNT
+			from
+				dual -->
+			select
+				(select count(*) from TB_NOTICE where APPLY_YN='Y' )
+				    +
+				(select count(*) from tb_event where APPLY_YN='Y' ) as NOTICE_COUNT
+			from
+				dual
+    </select>
+    
+    
+</mapper>

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="teacher">
+	<select id="selectMyKindergardenList" resultType="hashmap">
+		select
+			am.rep_flag, am.seq_kindergarden, am.seq_kindergarden_class, km.kindergarden_name, kcd.kindergarden_class_name, km.ar1, km.ar2, km.addr_etc, km.tel_no
+		from
+			tb_apply_m am 
+			inner join tb_kindergarden_m km on am.seq_kindergarden = km.seq_kindergarden and am.seq_user = #{seq_user} and am.req_flag = 't'
+			left outer join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		order by seq_apply desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <select id="selectDealerOne" resultType="hashmap">
+		select
+			um.seq_user, um.id, ued.* from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_DEALER'
+		and
+			um.seq_user = #{seq_user}
+    </select>
+    
+     <select id="selectBeaconList" resultType="hashmap">
+		select * from (
+			select bm.beacon_sn, bm.seq_user, brd2.proc_stat, if(brd2.start_date <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y-%m-%d') and brd2.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn' from tb_beacon_m bm left outer join (
+				SELECT beacon_sn, max(seq_beacon_req) as seq_beacon_req
+				FROM tb_beacon_req_d
+				GROUP BY beacon_sn
+			) brd on bm.beacon_sn = brd.beacon_sn
+			left outer join tb_beacon_req_d brd2 on brd.seq_beacon_req = brd2.seq_beacon_req
+			where 1=1
+			<if test="seq_user != null">and bm.seq_user = #{seq_user}</if>
+			<if test="beacon_sn != null">and bm.beacon_sn like #{beacon_sn}</if>
+		) ret
+		where isnull(proc_stat) or proc_stat = 'CA' or proc_stat = 'CD' or proc_stat = 'CC' or proc_stat = 'DA' or (proc_stat = 'RA' and proc_ra_yn = 'n')
+		order by beacon_sn
+    </select>
+    
+    <insert id="insertBeaconReq">
+		INSERT INTO tb_beacon_req_d (
+		<trim suffixOverrides=",">
+			<if test="beacon_sn != null"> beacon_sn, </if>
+			<if test="seq_store != null"> seq_store, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="proc_stat != null"> proc_stat, </if>
+			<if test="is_card != null"> is_card, </if>
+			<if test="cont_type != null"> cont_type, </if>
+			<if test="contract_year != null"> contract_year, </if>
+			<if test="start_date != null"> start_date, </if>
+			<if test="end_date != null"> end_date, </if>
+			<if test="memo != null"> memo, </if>
+			<if test="price != null"> price, </if>
+			<if test="s_year != null"> s_year, </if>
+			<if test="s_month != null"> s_month, </if>
+			<if test="s_day != null"> s_day, </if>
+			<if test="e_year != null"> e_year, </if>
+			<if test="e_month != null"> e_month, </if>
+			<if test="e_day != null"> e_day, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="beacon_sn != null"> #{beacon_sn} ,</if>
+			<if test="seq_store != null"> #{seq_store} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="proc_stat != null"> #{proc_stat} ,</if>
+			<if test="is_card != null"> #{is_card} ,</if>
+			<if test="cont_type != null"> #{cont_type} ,</if>
+			<if test="contract_year != null"> #{contract_year} ,</if>
+			<if test="start_date != null"> #{start_date} ,</if>
+			<if test="end_date != null"> #{end_date} ,</if>
+			<if test="memo != null"> #{memo} ,</if>
+			<if test="price != null"> trim(#{price}) ,</if>
+			<if test="s_year != null"> #{s_year} ,</if>
+			<if test="s_month != null"> #{s_month} ,</if>
+			<if test="s_day != null"> #{s_day} ,</if>
+			<if test="e_year != null"> #{e_year} ,</if>
+			<if test="e_month != null"> #{e_month} ,</if>
+			<if test="e_day != null"> #{e_day} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="selectDealerBeaconReqList" resultType="hashmap">
+<!-- 	select ifnull(datediff(brd.end_date, now()),0 )as 'dday', brd.*, cm.sort_serl, if(brd.start_date <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y-%m-%d') and brd.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn' from tb_beacon_req_d brd -->
+		select * from (
+			select ifnull(datediff(brd.end_date, now()),0 )as 'dday', brd.*, cm.sort_serl, if(brd.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn' from tb_beacon_req_d brd
+			inner join tb_comn_m cm on brd.proc_stat = cm.dtl_item_cd and cm.comn_cd = 'proc_stat_cd'
+			where seq_store = #{seq_store}
+		) ret
+		where 1=1
+		<if test="proc_beacon_filter == 'a'.toString()"> and proc_stat = 'RD' or proc_stat = 'RC'</if>
+		<if test="proc_beacon_filter == 'b'.toString()"> and proc_stat = 'RA' and proc_ra_yn = 'y'</if>
+		<if test="proc_beacon_filter == 'c'.toString()"> and proc_stat = 'CA' or proc_stat = 'CD' or proc_stat = 'CC' or proc_stat = 'DA' or proc_stat = 'DD' or proc_stat = 'DC' or (proc_stat = 'RA' and proc_ra_yn = 'n')</if>
+		order by sort_serl asc, reg_date desc
+    </select>
+    
+    <select id="selectDealerBeaconReqCount" resultType="java.lang.Integer">
+		select count(seq_beacon_req) from (
+			select ifnull(datediff(brd.end_date, now()),0 )as 'dday', brd.*, cm.sort_serl, if(brd.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn' from tb_beacon_req_d brd
+			inner join tb_comn_m cm on brd.proc_stat = cm.dtl_item_cd and cm.comn_cd = 'proc_stat_cd'
+			where seq_store = #{seq_store}
+		) ret
+		where 1=1
+		<if test="proc_beacon_filter == 'a'.toString()"> and proc_stat = 'RD' or proc_stat = 'RC'</if>
+		<if test="proc_beacon_filter == 'b'.toString()"> and proc_stat = 'RA' and proc_ra_yn = 'y'</if>
+		<if test="proc_beacon_filter == 'c'.toString()"> and proc_stat = 'CA' or proc_stat = 'CD' or proc_stat = 'CC' or proc_stat = 'DA' or proc_stat = 'DD' or proc_stat = 'DC' or (proc_stat = 'RA' and proc_ra_yn = 'n')</if>
+    </select>
+	
+	<select id="selectBeaconReq" resultType="hashmap">
+		select * from tb_beacon_req_d where seq_beacon_req = #{seq_beacon_req}
+    </select>
+    
+    <update id="updateBeaconReq">
+           UPDATE tb_beacon_req_d
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="proc_stat != null">, proc_stat = #{proc_stat}</if>
+				</trim>
+			</set>
+		WHERE seq_beacon_req=#{seq_beacon_req}
+	</update>
+	
+	<select id="selectStoreList" resultType="hashmap">
+		select
+			sm.*, ued.name as 'owner_name', ued2.name as 'dealer_name'
+		from
+			tb_store_m sm
+			inner join tb_user_ex_d ued on sm.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+		where
+			1=1
+			<if test="seq_user_prt != null"> and ued.seq_user_prt = #{seq_user_prt} </if>
+			<if test="seq_user != null"> and ued.seq_user_prt in (select seq_user from tb_user_ex_d where seq_user_prt = #{seq_user}) </if>
+			<if test="keyword != null"> and (sm.store_name like #{keyword} or ued.name like #{keyword} )</if>
+		order by sm.reg_date desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+    
+    <select id="selectStoreCount" resultType="java.lang.Integer">
+		select
+			count(seq_store)
+		from
+			tb_store_m sm
+			inner join tb_user_ex_d ued on sm.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+		where
+			1=1
+			<if test="seq_user_prt != null"> and ued.seq_user_prt = #{seq_user_prt} </if>
+			<if test="seq_user != null"> and ued.seq_user_prt in (select seq_user from tb_user_ex_d where seq_user_prt = #{seq_user}) </if>
+			<if test="keyword != null"> and (sm.store_name like #{keyword} or ued.name like #{keyword} )</if>
+    </select>
+    
+    <select id="selectStoreOne" resultType="hashmap">
+		select
+			sm.*, ued.name as dealer_name
+		from
+			tb_store_m sm inner join tb_user_ex_d ued
+			on sm.seq_user = ued.seq_user
+		where
+			sm.seq_user = #{seq_user}
+    </select>
+    
+    <select id="selectDealerGpsReqList" resultType="hashmap">
+    	select * from (
+			select brd.beacon_sn, cm.sort_serl, grd.*, ued.name as 'dealer_name', ued2.name as 'agency_name', sm.store_name,if(brd.start_date <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y-%m-%d') and brd.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn'
+			from tb_beacon_req_d brd
+			inner join tb_gps_req_d grd on brd.seq_beacon_req = grd.seq_beacon_req
+			inner join tb_user_ex_d ued on brd.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+			inner join tb_store_m sm on brd.seq_store = sm.seq_store
+			inner join tb_comn_m cm on grd.proc_stat = cm.dtl_item_cd and cm.comn_cd = 'proc_stat_cd'
+			where 1=1
+			<if test="seq_beacon_req != null"> and brd.seq_beacon_req = #{seq_beacon_req} </if>
+			<if test="seq_user_prt != null"> and ued.seq_user_prt = #{seq_user_prt} </if>
+			<if test="seq_user != null"> and ued.seq_user = #{seq_user} </if>
+			<if test="seq_user_store != null"> and sm.seq_user = #{seq_user_store} </if>
+		) ret
+		where 1=1
+		<if test="proc_gps_filter == 'a'.toString()"> and proc_stat = 'RD' or proc_stat = 'RC' or proc_stat = 'ED'</if>
+		<if test="proc_gps_filter == 'b'.toString()"> and proc_stat = 'RA' and proc_ra_yn = 'y'</if>
+		<if test="proc_gps_filter == 'c'.toString()"> and proc_stat = 'CA' or proc_stat = 'CD' or proc_stat = 'CC' or proc_stat = 'DA' or proc_stat = 'DD' or proc_stat = 'DC' or (proc_stat = 'RA' and proc_ra_yn = 'n')</if>
+		<if test="keyword != null"> and (ret.beacon_sn like #{keyword} or ret.store_name like #{keyword} )</if>
+		order by sort_serl asc, mod_date desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+    
+    <select id="selectDealerGpsReqCount" resultType="java.lang.Integer">
+    	select count(beacon_sn) from (
+			select brd.beacon_sn, cm.sort_serl, grd.*, ued.name as 'dealer_name', ued2.name as 'agency_name', sm.store_name,if(brd.start_date <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y-%m-%d') and brd.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn'
+			from tb_beacon_req_d brd
+			inner join tb_gps_req_d grd on brd.seq_beacon_req = grd.seq_beacon_req
+			inner join tb_user_ex_d ued on brd.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+			inner join tb_store_m sm on brd.seq_store = sm.seq_store
+			inner join tb_comn_m cm on brd.proc_stat = cm.dtl_item_cd and cm.comn_cd = 'proc_stat_cd'
+			where 1=1
+			<if test="seq_beacon_req != null"> and brd.seq_beacon_req = #{seq_beacon_req} </if>
+			<if test="seq_user_prt != null"> and ued.seq_user_prt = #{seq_user_prt} </if>
+			<if test="seq_user != null"> and ued.seq_user = #{seq_user} </if>
+			<if test="seq_user_store != null"> and sm.seq_user = #{seq_user_store} </if>
+		) ret
+		where 1=1
+		<if test="proc_gps_filter == 'a'.toString()"> and proc_stat = 'RD' or proc_stat = 'RC' or proc_stat = 'ED'</if>
+		<if test="proc_gps_filter == 'b'.toString()"> and proc_stat = 'RA' and proc_ra_yn = 'y'</if>
+		<if test="proc_gps_filter == 'c'.toString()"> and proc_stat = 'CA' or proc_stat = 'CD' or proc_stat = 'CC' or proc_stat = 'DA' or proc_stat = 'DD' or proc_stat = 'DC' or (proc_stat = 'RA' and proc_ra_yn = 'n')</if>
+		<if test="keyword != null"> and (ret.beacon_sn like #{keyword} or ret.store_name like #{keyword} )</if>
+    </select>
+    
+    <insert id="insertGpsReq">
+		INSERT INTO tb_gps_req_d (
+		<trim suffixOverrides=",">
+			<if test="seq_beacon_req != null"> seq_beacon_req, </if>
+			<if test="proc_stat != null"> proc_stat, </if>
+			<if test="cont_type != null"> cont_type, </if>
+			<if test="gps_name != null"> gps_name, </if>
+			<if test="gps_addr != null"> gps_addr, </if>
+			<if test="gps_ar1 != null"> ar1, </if>
+			<if test="gps_ar2 != null"> ar2, </if>
+			<if test="gps_ar3 != null"> ar3, </if>
+			<if test="gps_ar4 != null"> ar4, </if>
+			<if test="gps_ar5 != null"> ar5, </if>
+			<if test="lat != null"> lat, </if>
+			<if test="lng != null"> lng, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_beacon_req != null"> #{seq_beacon_req} ,</if>
+			<if test="proc_stat != null"> #{proc_stat} ,</if>
+			<if test="cont_type != null"> #{cont_type} ,</if>
+			<if test="gps_name != null"> #{gps_name} ,</if>
+			<if test="gps_addr != null"> #{gps_addr} ,</if>
+			<if test="gps_ar1 != null"> #{gps_ar1} ,</if>
+			<if test="gps_ar2 != null"> #{gps_ar2} ,</if>
+			<if test="gps_ar3 != null"> #{gps_ar3} ,</if>
+			<if test="gps_ar4 != null"> #{gps_ar4} ,</if>
+			<if test="gps_ar5 != null"> #{gps_ar5} ,</if>
+			<if test="lat != null"> #{lat} ,</if>
+			<if test="lng != null"> #{lng} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+    
+	<select id="selectGpsReq" resultType="hashmap">
+		select * from tb_gps_req_d where seq_gps_req = #{seq_gps_req}
+	</select>
+    
+    <update id="updateGpsReq">
+           UPDATE tb_gps_req_d
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="proc_stat != null">, proc_stat = #{proc_stat}</if>
+					<if test="gps_name != null">, gps_name = #{gps_name}</if>
+					
+					<if test="gps_addr != null">, gps_addr = #{gps_addr}</if>
+					<if test="gps_ar1 != null">, ar1 = #{gps_ar1}</if>
+					<if test="gps_ar2 != null">, ar2 = #{gps_ar2}</if>
+					<if test="gps_ar3 != null">, ar3 = #{gps_ar3}</if>
+					<if test="gps_ar4 != null">, ar4 = #{gps_ar4}</if>
+					<if test="gps_ar5 != null">, ar5 = #{gps_ar5}</if>
+					
+					<if test="lat != null">, lat = #{lat}</if>
+					<if test="lng != null">, lng = #{lng}</if>
+					
+					<if test="gps_addr_ed != null">, gps_addr_ed = #{gps_addr_ed}</if>
+					<if test="gps_ar1_ed != null">, ar1_ed = #{gps_ar1_ed}</if>
+					<if test="gps_ar2_ed != null">, ar2_ed = #{gps_ar2_ed}</if>
+					<if test="gps_ar3_ed != null">, ar3_ed = #{gps_ar3_ed}</if>
+					<if test="gps_ar4_ed != null">, ar4_ed = #{gps_ar4_ed}</if>
+					<if test="gps_ar5_ed != null">, ar5_ed = #{gps_ar5_ed}</if>
+					
+					<if test="lat_ed != null">, lat_ed = #{lat_ed}</if>
+					<if test="lng_ed != null">, lng_ed = #{lng_ed}</if>
+				</trim>
+			</set>
+		WHERE seq_gps_req=#{seq_gps_req}
+	</update>
+    
+</mapper>

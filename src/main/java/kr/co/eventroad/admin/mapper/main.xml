@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="main">
+	<select id="selectVersion" resultType="hashmap">
+		select * from tb_version_m where device = #{device}
+	</select>
+
+	<select id="selectParentMain" resultType="hashmap">
+		select
+			(select count(hrm.seq_home_request) from tb_home_request_m hrm where hrm.year = #{year} and hrm.month = #{month} and hrm.day = #{day} and hrm.seq_kids = #{seq_kids}) as 'count_home_request'
+	        , (select count(mrm.seq_medication_request) from tb_medication_request_m mrm where mrm.year = #{year} and mrm.month = #{month} and mrm.day = #{day} and mrm.seq_kids = #{seq_kids}) as 'count_medication_request'
+		from
+			dual
+	</select>
+	
+	<select id="selectTeacherMain" resultType="hashmap">
+		select
+			(select count(am.seq_apply) from tb_apply_m am where am.seq_kindergarden = #{seq_kindergarden} and am.seq_kindergarden_class = #{seq_kindergarden_class} and am.req_flag = 'p' and am.rep_flag = 'y') as 'count_y_kids'
+	        , (select count(am.seq_apply) from tb_apply_m am where am.seq_kindergarden = #{seq_kindergarden} and am.seq_kindergarden_class = #{seq_kindergarden_class} and am.req_flag = 'p' and am.rep_flag = 'w') as 'count_w_kids'
+	        , (select count(hrm.seq_home_request) from tb_home_request_m hrm where hrm.seq_kindergarden = #{seq_kindergarden} and hrm.seq_kindergarden_class = #{seq_kindergarden_class} and hrm.year = #{year} and hrm.month = #{month} and hrm.day = #{day} and hrm.seq_user_teacher is null) as 'count_home_request'
+	        , (select count(mrm.seq_medication_request) from tb_medication_request_m mrm where mrm.seq_kindergarden = #{seq_kindergarden} and mrm.seq_kindergarden_class = #{seq_kindergarden_class} and mrm.year = #{year} and mrm.month = #{month} and mrm.day = #{day} and mrm.seq_user_teacher is null) as 'count_medication_request'
+		from
+			dual
+	</select>
+	
+
+
+
+
+
+	<select id="selectPromiseList" resultType="hashmap">
+		SELECT
+			lng, lat, addr ,seq_promise, flag, phone_no, if(promise_time=1, DATE_FORMAT(date_add(reg_date, interval + 1 hour), '%Y-%m-%d %h:%i'), DATE_FORMAT(date_add(reg_date, interval + 30 minute), '%Y-%m-%d %h:%i')) as promise_timestamp
+		FROM
+			tb_promise_m pm
+		where
+			phone_no in (
+				select
+					if(req_phone_no=#{phone_no}, rep_phone_no, req_phone_no) as dd from tb_friend_m
+				where
+					is_yn = 'y'
+				and 
+				(
+					req_phone_no = #{phone_no}
+					or
+					rep_phone_no = #{phone_no}
+				)
+			    union
+			    select #{phone_no} from dual
+		)
+		order by reg_date desc
+	</select>
+
+	<select id="selectPortfoliosList" resultType="hashmap">
+		select * from tb_portfolios_m
+		where is_yn = 'y'
+		<if test="popular_yn != null">and popular_yn = #{popular_yn}</if>
+	</select>
+	
+	<select id="selectBattleInfo" resultType="hashmap">
+	    select * from (
+		  select
+		  /*+INDEX(br TB_BROADCAST_INDEX2) */
+		    bt.SEQ_BROADCAST_BATTLE, bt.SEQ_BROCAST_LEFT, bt.SEQ_BROCAST_RIGHT, br.START_DATE, br.END_DATE
+		    , bt.END_DATE as battle_end_date, bt.START_DATE as BATTLE_START_DATE
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_LEFT) )as screen_file_battle_left
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_RIGHT) ) as screen_file_battle_right
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT) as title_battle_left
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_RIGHT) as title_battle_right
+		    , (select  count(seq_board) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_LEFT) as VOTE_COUNT_LEFT 
+		    , (select count(seq_board) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_RIGHT) as VOTE_COUNT_RIGHT
+		    , '진행 중' as vote_result
+		  from
+		    TB_BROADCAST br, TB_BROADCAST_BATTLE bt
+		  where
+		    br.SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT
+		    and trunc(sysdate) <![CDATA[>=]]> trunc(br.START_DATE) and trunc(sysdate) <![CDATA[<=]]> trunc(br.END_DATE)
+		  order by br.START_DATE
+		)
+		
+		  union all
+		
+		select * from (
+		  select
+		  /*+INDEX(br TB_BROADCAST_INDEX2) */
+		    bt.SEQ_BROADCAST_BATTLE, bt.SEQ_BROCAST_LEFT, bt.SEQ_BROCAST_RIGHT, br.START_DATE, br.END_DATE
+		    , bt.END_DATE as battle_end_date, bt.START_DATE as BATTLE_START_DATE
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_LEFT) )as screen_file_battle_left
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_RIGHT) ) as screen_file_battle_right
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT) as title_battle_left
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_RIGHT) as title_battle_right
+		    , (select count(*) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_LEFT) as VOTE_COUNT_LEFT 
+		    , (select count(*) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_RIGHT) as VOTE_COUNT_RIGHT
+		    , '예약' as vote_result
+		  from
+		    TB_BROADCAST br, TB_BROADCAST_BATTLE bt
+		  where
+		    br.SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT
+		    and trunc(sysdate) <![CDATA[<]]> trunc(br.START_DATE)
+		  order by br.START_DATE
+		)
+		  union all
+		select * from (
+		  select
+		  /*+INDEX(br TB_BROADCAST_INDEX2) */
+		    bt.SEQ_BROADCAST_BATTLE, bt.SEQ_BROCAST_LEFT, bt.SEQ_BROCAST_RIGHT, br.START_DATE, br.END_DATE
+		    , bt.END_DATE as battle_end_date, bt.START_DATE as BATTLE_START_DATE
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_LEFT) )as screen_file_battle_left
+		    , (select screen_file from TB_VIDEO where seq_video=(select seq_video from tb_broadcast where seq_broadcast = bt.SEQ_BROCAST_RIGHT) ) as screen_file_battle_right
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT) as title_battle_left
+		    , (select BROADCAST_TITLE from TB_BROADCAST where SEQ_BROADCAST = bt.SEQ_BROCAST_RIGHT) as title_battle_right
+		    , (select count(*) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_LEFT) as VOTE_COUNT_LEFT 
+		    , (select count(*) as VOTE_COUNT from tb_board where board_type='VT' and SEQ_BROADCAST = bt.seq_broadcast_battle and board_detail=bt.SEQ_BROCAST_RIGHT) as VOTE_COUNT_RIGHT
+		    , '종료' as vote_result
+		  from
+		    TB_BROADCAST br, TB_BROADCAST_BATTLE bt
+		  where
+		    br.SEQ_BROADCAST = bt.SEQ_BROCAST_LEFT
+		    and trunc(sysdate) <![CDATA[>]]> trunc(br.END_DATE)
+		  order by br.START_DATE
+		)
+    </select>
+	
+	<update id="updateBattleInfo">
+        UPDATE TB_BROADCAST_BATTLE
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="RESULT_START_DATE != null"> START_DATE = to_date(#{RESULT_START_DATE})</if>
+					<if test="RESULT_END_DATE != null">, END_DATE = to_date(#{RESULT_END_DATE})</if>
+				</trim>
+			</set>
+		WHERE SEQ_BROADCAST_BATTLE=#{SEQ_BROADCAST_BATTLE}
+	</update>
+	
+    <select id="getMainNotice" resultType="hashmap">
+		SELECT
+			seq_notice, title, content, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_notice
+		order by seq_notice desc
+		LIMIT 0, 6;
+	</select>
+	
+	 <select id="getNoticeDetail" resultType="hashmap">
+		SELECT
+			seq_notice, title, content, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_notice
+		WHERE seq_notice=#{seq_notice}
+	</select>
+	
+	<select id="getNoticeList" resultType="hashmap">
+		SELECT
+			seq_notice, title, content, flag_banner, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_notice
+		<if test="seq_notice != null">where seq_notice=#{seq_notice} </if>
+		order by seq_notice desc
+		LIMIT ${(page-1)*10}, ${(page-1)*10+10};
+	</select>
+	
+	<select id="getNoticeListCount" resultType="java.lang.String">
+		SELECT count(seq_notice) from tb_notice
+	</select>
+	
+	<insert id="insertQuestion">
+		INSERT INTO tb_question (
+		<trim suffixOverrides=",">
+			<if test="mb_no != null"> mb_no, </if>
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			<if test="reply != null"> reply, </if>
+			<if test="regdate == null"> regdate, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="mb_no != null"> #{mb_no} ,</if>
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="reply != null"> #{reply} ,</if>
+			<if test="regdate == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="getQuestionList" resultType="hashmap">
+		SELECT
+			seq_question, title, IF(mb_no=#{mb_no}, 'y', '') as setting, content, reply, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_question
+		order by seq_question desc
+		LIMIT ${(page-1)*10}, ${(page-1)*10+10};
+	</select>
+	
+	<select id="getQuestionListCount" resultType="java.lang.String">
+		SELECT count(seq_question) from tb_question
+	</select>
+	
+	
+	<insert id="testExcel" parameterType="java.util.List">
+		INSERT INTO tb_test (test1, test2, ts_regdate) VALUES
+		<foreach collection="list" item="item" separator=" , ">
+		(
+			#{item.test1} ,
+			#{item.test2} ,
+			now()
+		)
+		</foreach>
+	</insert>
+	
+	<select id="selectCategoryList" resultType="hashmap">
+		SELECT * from tb_comn_m where 1=1
+		<if test="comn_cd != null"> and comn_cd=#{comn_cd}</if>
+		<if test="up_comn_cd != null"> and up_comn_cd=#{up_comn_cd}</if>
+		<if test="dtl_item_cd != null"> and dtl_item_cd=#{dtl_item_cd}</if>
+		<if test="up_dtl_item_cd != null"> and up_dtl_item_cd=#{up_dtl_item_cd}</if>
+	</select>
+	
+	<select id="selectTitleList" resultType="hashmap">
+		select dtl_item_cd, dtl_item_nm, is_required from tb_comn_m cm
+		inner join (
+			select distinct up_dtl_item_cd from tb_comn_m where comn_cd = #{comn_cd}
+		) cm_sub on cm.comn_cd = 'category_cd' and cm.dtl_item_cd = cm_sub.up_dtl_item_cd
+	</select>
+	
+	<select id="selectContentList" resultType="hashmap">
+		SELECT
+			dtl_item_cd, comn_cd, dtl_item_nm, up_dtl_item_cd, comn_cdnm, is_required
+		FROM
+			tb_comn_m
+		where
+			is_yn = 'y'
+			and comn_cd = #{comn_cd}
+	</select>
+	
+	<select id="getCostEstimateResult" resultType="hashmap">
+		SELECT
+			cm.comn_cdnm, cm.dtl_item_nm
+			, (select dtl_item_nm from tb_comn_m cm2 where cm.up_dtl_item_cd = cm2.dtl_item_cd ) as 'up_dtl_item_nm'
+		FROM
+			tb_comn_m cm
+		WHERE
+			cm.comn_cd=#{r_product_type}
+			and cm.dtl_item_cd in (${arr_params})
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="getCheckUserId" resultType="hashmap">
+	   select
+        	*
+		from
+		  	tb_user_m
+		where
+			phone_no = #{phone_no}
+    </select>
+	
+	<insert id="insertUser">
+		INSERT INTO tb_user_m (
+		<trim suffixOverrides=",">
+			<if test="phone_no != null"> phone_no, </if>
+			<if test="name != null"> name, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="phone_no != null"> #{phone_no} ,</if>
+			<if test="name != null"> #{name} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="selectUser" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			tb_user_m
+		WHERE phone_no=#{phone_no}
+	</select>
+	
+	<select id="checkReqFriend" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			tb_friend_m
+		WHERE
+			(req_phone_no=#{req_phone_no} and rep_phone_no=#{rep_phone_no})
+			or
+			(req_phone_no=#{rep_phone_no} and rep_phone_no=#{req_phone_no})
+	</select>
+	
+	<insert id="insertReqFriend">
+		INSERT INTO tb_friend_m (
+		<trim suffixOverrides=",">
+			<if test="req_phone_no != null"> req_phone_no, </if>
+			<if test="rep_phone_no != null"> rep_phone_no, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="req_phone_no != null"> #{req_phone_no} ,</if>
+			<if test="rep_phone_no != null"> #{rep_phone_no} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<update id="updateReqFriend">
+        UPDATE tb_friend_m
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="is_yn != null">is_yn = #{is_yn}</if>
+				</trim>
+			</set>
+		WHERE seq_friend=#{seq_friend}
+	</update>
+	
+	<select id="deleteReqFriend" resultType="hashmap">
+		DELETE FROM tb_friend_m where seq_friend=#{seq_friend}
+	</select>
+	
+	<insert id="insertPromise">
+		INSERT INTO tb_promise_m (
+		<trim suffixOverrides=",">
+			<if test="phone_no != null"> phone_no, </if>
+			<if test="promise_time != null"> promise_time, </if>
+			<if test="addr != null"> addr, </if>
+			<if test="lat != null"> lat, </if>
+			<if test="lng != null"> lng, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="phone_no != null"> #{phone_no} ,</if>
+			<if test="promise_time != null"> #{promise_time} ,</if>
+			<if test="addr != null"> #{addr} ,</if>
+			<if test="lat != null"> #{lat} ,</if>
+			<if test="lng != null"> #{lng} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<update id="updatePromise">
+        UPDATE tb_promise_m
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="flag != null"> flag = #{flag}</if>
+				</trim>
+			</set>
+		WHERE seq_promise=#{seq_promise}
+	</update>
+	
+	<select id="selectLocationList" resultType="hashmap">
+		select * from tb_user_m where phone_no in (
+			select
+				if(req_phone_no=#{phone_no}, rep_phone_no, req_phone_no)
+		    from
+				tb_friend_m
+			where
+				is_yn='y' and (req_phone_no = #{phone_no} or rep_phone_no = #{phone_no}
+			)
+			union
+		    select #{phone_no} from dual
+		)
+	</select>
+</mapper>

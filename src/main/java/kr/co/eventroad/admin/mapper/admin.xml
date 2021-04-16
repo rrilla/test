@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="admin">
+
+	<select id="selectNoticeCount" resultType="java.lang.Integer">
+		SELECT
+			count(seq_notice)
+		FROM
+			tb_notice_m
+	</select>
+	
+	
+    
+    
+    <select id="selectNanumList" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			tb_nanum_m
+		WHERE
+			1=1
+			order by seq_nanum desc
+			LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectNanumCount" resultType="java.lang.Integer">
+		SELECT
+			count(seq_nanum)
+		FROM
+			tb_nanum_m
+	</select>
+	
+	<select id="selectNanumOne" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			tb_nanum_m
+		WHERE
+			seq_nanum = #{seq_nanum}
+	</select>
+	
+	<insert id="insertNanum" useGeneratedKeys="true" keyProperty="seq_notice">
+		INSERT INTO tb_nanum_m (
+		<trim suffixOverrides=",">
+			<if test="title != null"> title, </if>
+			<if test="content != null"> content, </if>
+			
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="title != null"> #{title} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<update id="updateNanum">
+            UPDATE
+				tb_nanum_m
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="title != null"> title=#{title} </if>
+					<if test="content != null">, content=#{content} </if>
+					
+					<if test="is_banner != null">, is_banner=#{is_banner}</if>
+				</trim>
+			</set>
+			<if test="seq_nanum != null">
+				WHERE
+					seq_nanum=#{seq_nanum}
+			</if>
+	</update>
+	
+	<select id="deleteNanum" resultType="hashmap">
+    	DELETE FROM tb_nanum_m WHERE seq_nanum=#{seq_nanum}
+    </select>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+	<select id="getNotice" resultType="hashmap">
+		SELECT
+			seq_notice, title, content, flag_banner, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_notice
+		<if test="seq_notice != null">where seq_notice=#{seq_notice} </if>
+		order by seq_notice desc
+		LIMIT ${(page-1)*20}, 20
+	</select>
+	
+	<select id="getNoticeCount" resultType="java.lang.String">
+		SELECT count(seq_notice) from tb_notice
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+	<select id="selectAgencyList" resultType="hashmap">
+		select
+			um.seq_user, um.enabled, um.id, ued.* from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_AGENCY'
+			<if test="keyword != null"> and (um.id like #{keyword} or ued.name like #{keyword} )</if>
+			order by um.seq_user desc
+			LIMIT ${(page-1)*10}, 10
+    </select>
+    
+	<select id="selectAgencyCount" resultType="java.lang.Integer">
+		select
+			count(um.seq_user) from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_AGENCY'
+			<if test="keyword != null"> and (um.id like #{keyword} or ued.name like #{keyword})</if>
+    </select>
+    
+	<select id="selectAgencyOne" resultType="hashmap">
+		select
+			um.seq_user, um.id, ued.* from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_AGENCY'
+		and
+			um.seq_user = #{seq_user}
+    </select>
+
+	<update id="updateUserEnabled">
+           UPDATE
+			tb_user_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="enabled != null"> enabled=#{enabled} </if>
+			</trim>
+		</set>
+		WHERE
+			seq_user=#{seq_user}
+	</update>
+	
+	<update id="updateMainBannerEnabled">
+		UPDATE
+			tb_notice_m
+		<set>
+			is_banner=#{is_banner} 
+		</set>
+		WHERE
+			seq_notice=#{seq_notice}
+	</update>
+	
+	<select id="selectInquiryList" resultType="hashmap">
+		SELECT
+			DATE_FORMAT(im.reg_date, '%Y-%m-%d') as 'reg_date',im.*, um.*
+		FROM
+			tb_inquiry_m im
+		inner join tb_user_m um on im.seq_user = um.seq_user
+		order by im.reg_date desc, im.answer
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectInquiryCount" resultType="java.lang.Integer">
+		SELECT
+			count(seq_inquiry)
+		FROM
+			tb_inquiry_m im
+		inner join tb_user_m um on im.seq_user = um.seq_user
+	</select>
+
+	<select id="selectInquiryDetail" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			tb_inquiry_m
+		WHERE
+			1=1
+			<if test="seq_inquiry != null">and seq_inquiry=#{seq_inquiry} </if>
+	</select>
+	
+	<update id="updateInquiry">
+		UPDATE
+			tb_inquiry_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="answer != null"> answer=#{answer} </if>
+			</trim>
+		</set>
+		WHERE
+			seq_inquiry=#{seq_inquiry}
+	</update>
+
+	<select id="selectUserList" resultType="hashmap">
+		select count(cd.seq_coupon) as coupon_use_count, DATE_FORMAT(up.reg_date, '%Y-%m-%d') as 'reg_date', up.* from (
+			SELECT
+				ifnull(sum(pm.amount), 0) as point_amount, um.*
+			FROM
+				tb_user_m um
+		        inner join tb_auth_m am on am.seq_user = um.seq_user and authority = 'ROLE_USER'
+				left outer join tb_point_m pm on um.seq_user = pm.seq_user
+			 group by um.seq_user <if test="keyword != null"> having um.id like #{keyword}</if>
+			 order by um.reg_date desc
+			 LIMIT ${(page-1)*10}, 10
+		) up
+		left outer join tb_coupon_d cd on up.seq_user = cd.seq_user and is_use='y'
+		group by up.seq_user
+	</select>
+	
+	<select id="selectUserCount" resultType="java.lang.Integer">
+		select count(*) from (
+			SELECT
+				um.seq_user
+			FROM
+				tb_user_m um
+				inner join tb_auth_m am on am.seq_user = um.seq_user and authority = 'ROLE_USER' <if test="keyword != null"> and um.id like #{keyword}</if>
+				left outer join tb_point_m pm on um.seq_user = pm.seq_user
+			 group by um.seq_user
+		) up
+	</select>
+	
+	<select id="selectPushUserList" resultType="hashmap">
+		SELECT token FROM (
+			select um.token, um.mod_date from tb_user_m um inner join tb_push_setting_d psd on um.seq_user = psd.seq_user and psd.push_yn='y' order by um.mod_date desc
+		) ret group by token
+	</select>
+
+	<select id="selectReviewList" resultType="hashmap">
+		select
+			DATE_FORMAT(rvd.reg_date, '%Y-%m-%d') as 'reg_date', rvd.*, um.id, sm.store_name
+		from
+			tb_review_d rvd
+		inner join tb_user_m um on rvd.seq_user = um.seq_user
+		inner join tb_store_m sm on rvd.seq_store = sm.seq_store
+		where 1=1
+		<if test="keyword != null"> and um.id like #{keyword} or sm.store_name like #{keyword} or rvd.content like #{keyword}</if>
+		order by rvd.seq_review desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+	
+	<select id="selectReviewCount" resultType="java.lang.Integer">
+		select
+			count(rvd.seq_review)
+		from
+			tb_review_d rvd
+		inner join tb_user_m um on rvd.seq_user = um.seq_user
+		inner join tb_store_m sm on rvd.seq_store = sm.seq_store
+		where 1=1
+		<if test="keyword != null"> and um.id like #{keyword} or sm.store_name like #{keyword} or rvd.content like #{keyword}</if>
+	</select>
+	
+	<update id="updateReviewEnabled">
+		UPDATE
+			tb_review_d
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="is_yn != null"> is_yn=#{is_yn} </if>
+			</trim>
+		</set>
+		WHERE
+			seq_review=#{seq_review}
+	</update>
+	
+	<select id="selectReviewDetail" resultType="hashmap">
+		select * from tb_review_d where seq_review = #{seq_review}
+	</select>
+	
+	<select id="getAdminByIdPw" resultType="hashmap">
+		SELECT
+			*
+		FROM
+			TB_ADMIN_ACCOUNT 
+		WHERE
+			ID=#{id}
+			AND PW=#{pw}
+	</select>
+	
+	<select id="getAdminById" resultType="hashmap">
+		SELECT
+			COUNT(*) AS CNT
+		FROM
+			TB_ADMIN_ACCOUNT 
+		WHERE
+			ID=#{id}
+	</select>
+	
+	<insert id="setAdmin">
+		INSERT INTO TB_ADMIN_ACCOUNT (
+		<trim suffixOverrides=",">
+			<if test="id != null"> id, </if>
+			<if test="pw != null"> pw, </if>
+			<if test="name != null"> name, </if>
+			<if test="department != null"> department, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="id != null"> #{id} ,</if>
+			<if test="pw != null"> #{pw} ,</if>
+			<if test="name != null"> #{name} ,</if>
+			<if test="department != null"> #{department} ,</if>
+		</trim>
+		)
+	</insert>
+
+	<update id="updateAdminPw">
+		UPDATE
+			TB_ADMIN_ACCOUNT
+		SET
+			PW=#{pw} 
+		WHERE
+			ID=#{id}
+	</update>
+	
+	<select id="getRegInquery" resultType="hashmap">
+		SELECT
+			COUNT(*) AS CNT
+		FROM
+			TB_ADMIN_ACCOUNT 
+		WHERE
+			ID=#{id}
+	</select>
+	
+	<insert id="insertAdminUser">
+		INSERT INTO TB_ADMIN_ACCOUNT
+		(
+		<trim suffixOverrides=",">
+		    <if test="DEPARTMENT != null"> DEPARTMENT, </if>
+			<if test="ID != null"> ID, </if>
+			<if test="NAME != null"> NAME, </if>
+			<if test="PW != null"> PW, </if>
+			<if test="REG_DATE == null"> REG_DATE </if>
+		</trim>
+		)VALUES(
+		<trim suffixOverrides=",">
+		    <if test="DEPARTMENT != null"> #{DEPARTMENT} ,</if>
+			<if test="ID != null"> #{ID} ,</if>
+			<if test="NAME != null"> #{NAME} ,</if>
+			<if test="PW != null"> #{PW} ,</if>
+			<if test="REG_DATE == null"> sysdate </if>
+		</trim>
+		)
+		<selectKey resultType="int" keyProperty="SEQ_ADMIN_ACCOUNT" order="AFTER">
+		    <!-- SELECT LAST_INSERT_ID() -->
+		    SELECT SEQ_ADMIN_ACCOUNT.currval from dual
+		</selectKey>
+	</insert>
+	
+	<select id="selectAdminRockMNG" resultType="hashmap">
+		select * from TB_ADMIN_ACCOUNT_MNG
+		<if test="PROC_STAT != null"> 
+		    where SEQ_ADMIN_ACCOUNT = #{SEQ_ADMIN_ACCOUNT} and PROC_STAT = #{PROC_STAT}
+		</if>
+		<if test="PROC_STAT == null">
+		    order by proc_stat, REQ_UNLOCK_DATE desc
+		</if>
+	</select>
+	
+    <update id="updateAdminRockMNG">
+		UPDATE TB_ADMIN_ACCOUNT_MNG
+			set
+				 PROC_STAT = '02'
+		WHERE SEQ_ADMIN_ACCOUNT_MNG=#{SEQ_ADMIN_ACCOUNT_MNG}
+	</update>
+	
+	<select id="getChangeAddressToGeocode" resultType="hashmap">
+		select * from tb_store where lat is null
+	</select>
+	
+	<update id="setChangeAddressToGeocode">
+		update
+			TB_STORE
+		<set>
+		    <if test="LAT != null"> LAT = #{LAT} ,</if>
+		    <if test="LNG != null"> LNG = #{LNG} </if>
+		</set>
+		where seq_store = #{SEQ_STORE}
+	</update>
+	
+	<insert id="setInsertImageAddress">
+		<!-- INSERT INTO TB_VIDEO (
+		<trim suffixOverrides=",">
+		    <if test="SEQ_STORE != null"> SEQ_STORE ,</if>
+			<if test="VIDEO_FILE != null"> VIDEO_FILE ,</if>
+			<if test="SCREEN_FILE != null"> SCREEN_FILE</if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+		    <if test="SEQ_STORE != null"> #{SEQ_STORE} ,</if>
+			<if test="VIDEO_FILE != null"> #{VIDEO_FILE} ,</if>
+			<if test="SCREEN_FILE != null"> #{SCREEN_FILE}</if>
+		</trim>
+		) -->
+		INSERT INTO TB_IMAGE (
+		<trim suffixOverrides=",">
+		    <if test="SEQ_STORE != null"> SEQ_STORE ,</if>
+			<if test="IMAGE_FILE != null"> IMAGE_FILE ,</if>
+			IMAGE_TYPE
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+		    <if test="SEQ_STORE != null"> #{SEQ_STORE} ,</if>
+			<if test="IMAGE_FILE != null"> #{IMAGE_FILE} ,</if>
+			'SM'
+			
+		</trim>
+		)
+	</insert>
+	
+	<select id="getUserMember" resultType="hashmap">
+		SELECT
+			mb.mb_id, mb.mb_no ,DATE_FORMAT(mb_regdate, '%Y-%m-%d') as mb_regdate , lc.lc_kind, lc.lc_name, lc.lc_code, lc.lc_area
+		FROM
+			tb_member mb left join tb_localm lc on mb_lccode=lc.lc_code
+		WHERE 1=1
+		<if test="search_word != null">and mb_id like #{search_word} or mb_name like #{search_word}</if>
+		<if test="search_area_first != null and search_area_first!='전체'.toString() and search_area_second=='전체'.toString()">and lc_kind = #{search_area_first}</if>
+		<if test="search_area_first != null and search_area_first!='전체'.toString() and search_area_second!='전체'.toString()">and lc_code = #{search_area_second}</if>
+		order by mb_no desc
+		LIMIT ${(page-1)*20}, 20
+	</select>
+	
+	<select id="getMember" resultType="hashmap">
+		SELECT mb.*, lc.lc_kind, lc.lc_name, lc.lc_code, lc.lc_area from tb_member mb left join tb_localm lc on mb_lccode=lc.lc_code where mb_no = #{mb_no}
+	</select>
+	
+	<select id="getCoupon" resultType="hashmap">
+		SELECT
+			seq_coupon, coupon_no, company, discount, volume, DATE_FORMAT(regdate, '%Y-%m-%d') as regdate, DATE_FORMAT(moddate, '%Y-%m-%d') as moddate
+		FROM
+			tb_coupon
+		<if test="seq_coupon != null">where seq_coupon=#{seq_coupon} </if>
+		order by seq_coupon desc
+		LIMIT ${(page-1)*10}, ${(page-1)*10+10};
+	</select>
+	
+	<select id="getCouponCount" resultType="java.lang.String">
+		SELECT count(seq_coupon) from tb_coupon
+	</select>
+	
+	<insert id="insertCoupon">
+		INSERT INTO tb_coupon (
+		<trim suffixOverrides=",">
+			<if test="coupon_no != null"> coupon_no, </if>
+			<if test="company != null"> company, </if>
+			<if test="discount != null"> discount, </if>
+			<if test="volume != null"> volume, </if>
+			<if test="regdate == null"> regdate, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="coupon_no != null"> #{coupon_no} ,</if>
+			<if test="company != null"> #{company} ,</if>
+			<if test="discount != null"> #{discount} ,</if>
+			<if test="volume != null"> #{volume} ,</if>
+			<if test="regdate == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="deleteCoupon" resultType="hashmap">
+    	DELETE FROM tb_coupon WHERE seq_coupon=#{seq_coupon}
+    </select>
+    
+    <update id="updateCoupon">
+            UPDATE
+				tb_coupon
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="coupon_no != null"> coupon_no=#{coupon_no} </if>
+					<if test="company != null">, company=#{company} </if>
+					<if test="discount != null">, discount=#{discount} </if>
+					<if test="volume != null">, volume=#{volume} </if>
+				</trim>
+			</set>
+			<if test="seq_coupon != null">
+				WHERE
+					seq_coupon=#{seq_coupon}
+			</if>
+	</update>
+	
+	
+	<select id="getSingo" resultType="hashmap">
+		(
+			select b.ba_no, b.mb_no, 'F' as b2_type, ba_order, '1' as basic, DATE_FORMAT(ba_moddate, '%Y-%m-%d') as ba_moddate, mb.mb_id, mb.mb_name, mb.mb_birth, mb.mb_lccode
+			from tb_basic1 b left join tb_member mb on b.mb_no=mb.mb_no where 1=1
+		)
+		
+		union all
+		(
+			select b.b2_no as ba_no, b.mb_no, b2_type, b2_order as ba_order,'2' as basic, DATE_FORMAT(b2_moddate, '%Y-%m-%d') as ba_moddate, mb.mb_id, mb.mb_name, mb.mb_birth, mb.mb_lccode
+			from tb_basic2 b left join tb_member mb on b.mb_no=mb.mb_no where 1=1
+		)
+		order by ba_moddate desc
+		limit ${(page-1)*20}, 20
+	</select>
+	
+	<select id="getSingoCount" resultType="java.lang.String">
+		select count(a.mb_no) from (
+			(select mb_no from tb_basic1)
+		union all
+        	(select mb_no from tb_basic2)
+		) a
+	</select>
+	
+	<select id="selectCheckNews" resultType="hashmap">
+		select 
+			(select count(seq_beacon_req) from tb_beacon_req_d where proc_stat = 'RC') as 'beacon'
+			, (select count(seq_gps_req) from tb_gps_req_d where proc_stat = 'RD' or proc_stat = 'ED') as 'gps'
+			, (select count(seq_inquiry) from tb_inquiry_m where answer is null) as 'inquiry'
+		from dual
+	</select>
+	
+	<select id="selectInquiryUser" resultType="hashmap">
+		select seq_inquiry, token from tb_inquiry_m im inner join tb_user_m um on im.seq_user = um.seq_user and im.seq_inquiry = #{seq_inquiry}
+	</select>
+</mapper>

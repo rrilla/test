@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="reply">
+
+	<insert id="insertReply">
+		INSERT INTO tb_reply_m (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="seq != null"> seq, </if>
+			<if test="flag != null"> flag, </if>
+			<if test="content != null"> content, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="seq != null"> #{seq} ,</if>
+			<if test="flag != null"> #{flag} ,</if>
+			<if test="content != null"> #{content} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+
+	<select id="deleteReply" resultType="hashmap">
+    	DELETE FROM tb_reply_m WHERE seq_reply=#{seq_reply}
+    </select>
+
+	<select id="selectReplyList" resultType="hashmap">
+		select
+			td.name_title, am.authority, rm.*, um.name, user_image
+		from
+			tb_reply_m rm
+			inner join tb_user_m um on rm.seq_user = um.seq_user
+			inner join tb_auth_m am on rm.seq_user = am.seq_user
+			left outer join tb_apply_m apm on rm.seq_user = apm.seq_user and rm.seq_kids = apm.seq_kids and apm.rep_flag = 'y'
+			left outer join tb_title_d td on rm.seq_user = td.seq_user and rm.seq_kids = td.seq_kids
+		where
+			rm.seq = #{seq}
+			and rm.flag = #{flag}
+		order by rm.seq_reply desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+
+	<select id="selectPushNoticeUserOne" resultType="hashmap">
+		select
+			token
+		from
+			tb_user_m
+		where
+			seq_user = (select seq_user from tb_notice_m where seq_notice = #{seq})
+			and seq_user not in (${seq_user})
+	</select>
+	
+	<select id="selectPushAlbumUserOne" resultType="hashmap">
+		select
+			token
+		from
+			tb_user_m
+		where
+			seq_user = (select seq_user from tb_album_m where seq_album = #{seq})
+			and seq_user not in (${seq_user})
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<select id="selectAdminReviewInfo" resultType="hashmap">
+		  select
+		    bo.seq_board, bo.reg_date, s.store_name, u.NICKNAME, bo.GRADE ,bo.BOARD_DETAIL, bo.IS_BLOCKED_YN, bo.VIEW_YN, re.SEQ_REPLY, re.REPLY_DETAIL, u.email
+		  from
+		    tb_board bo, TB_REPLY re, tb_store s, tb_user u
+		  where
+		    bo.BOARD_TYPE='RU'
+		    and bo.SEQ_USER = u.SEQ_USER
+		    and bo.SEQ_STORE = s.SEQ_STORE
+		    and bo.SEQ_BOARD = re.SEQ_BOARD(+)
+		    and bo.VIEW_YN='Y'
+		    <if test="STORE_NAME != null">and s.store_name like #{STORE_NAME} </if>
+		    <if test="START_DATE != null">and to_char(bo.reg_date, 'yyyy-mm-dd') <![CDATA[>=]]> #{START_DATE} and to_char(bo.reg_date, 'yyyy-mm-dd') <![CDATA[<=]]> #{END_DATE} </if>
+		     
+		  order by bo.REG_DATE desc
+    </select>
+    
+	<select id="updateBoard" resultType="hashmap">
+	    UPDATE TB_BOARD
+			set
+				IS_BLOCKED_YN = 'Y'
+       WHERE SEQ_BOARD = #{SEQ_BOARD}
+    </select>
+</mapper>

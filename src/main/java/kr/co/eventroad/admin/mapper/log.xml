@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="log">
+	<select id="getUvPv" resultType="hashmap">
+		SELECT
+		TO_DATE(REG_DATE) AS D_DATE,
+		COUNT(CASE WHEN PATH = 'getInit' OR PATH = '/getInit' THEN 1 ELSE NULL END) MAIN_PV ,
+		COUNT(DISTINCT CASE WHEN PATH='getInit' OR PATH = '/getInit' THEN UUID ELSE NULL END) MAIN_UV
+		FROM TB_LOG
+		WHERE
+		1=1
+		AND R_DATE &gt;= SYSDATE-1 AND R_DATE &lt; SYSDATE
+		GROUP BY R_DATE);
+	</select>
+
+	<select id="getUvPv2" resultType="hashmap">
+		SELECT
+			TO_DATE(R_DATE) AS REG_DATE,
+
+			COUNT(CASE WHEN PATH='getInit' THEN 1 ELSE NULL END) A_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getInit' THEN UUID ELSE NULL END) A_UV,
+
+			COUNT(CASE WHEN PATH='getStoreKindDetailTop' THEN 1 ELSE NULL END) B_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getStoreKindDetailTop' THEN UUID ELSE NULL END) B_UV,
+
+			COUNT(CASE WHEN PATH='getStoreKindDetailBottom' THEN 1 ELSE NULL END) C_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getStoreKindDetailBottom' THEN UUID ELSE NULL END) C_UV,
+
+			COUNT(CASE WHEN PATH='getStoreKindSearch' THEN 1 ELSE NULL END) D_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getStoreKindSearch' THEN UUID ELSE NULL END) D_UV,
+
+			COUNT(CASE WHEN PATH='getRealStoryMain' THEN 1 ELSE NULL END) E_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getRealStoryMain' THEN UUID ELSE NULL END) E_UV,
+
+			COUNT(CASE WHEN PATH='getRealStoryDetail' THEN 1 ELSE NULL END) F_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getRealStoryDetail' THEN UUID ELSE NULL END) F_UV,
+
+			COUNT(CASE WHEN PATH='getTerms' THEN 1 ELSE NULL END) G_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getTerms' THEN UUID ELSE NULL END) G_UV,
+
+			COUNT(CASE WHEN PATH='getMainBoardReview' THEN 1 ELSE NULL END) H_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getMainBoardReview' THEN UUID ELSE NULL END) H_UV,
+
+			COUNT(CASE WHEN PATH='getNoticeEvent' THEN 1 ELSE NULL END) I_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getNoticeEvent' THEN UUID ELSE NULL END) I_UV,
+
+			COUNT(CASE WHEN PATH='getArea' THEN 1 ELSE NULL END) J_PV,
+			COUNT(DISTINCT CASE WHEN PATH='getArea' THEN UUID ELSE NULL END) J_UV
+		FROM tb_log
+		where
+			1=1
+			-- AND R_DATE BETWEEN TO_DATE(#{gte}, 'YYYY-MM-DD') AND TO_DATE(#{lt}, 'YYYY-MM-DD')
+			AND R_DATE BETWEEN TO_DATE(TO_CHAR(SYSDATE-1, 'YYYYMMDD'),'YYYYMMDD') AND TO_DATE(TO_CHAR(SYSDATE+1, 'YYYYMMDD'),'YYYYMMDD')
+		GROUP BY TO_DATE(R_DATE);
+	</select>
+	
+	<insert id="setLog">
+		INSERT INTO tb_log_m(
+			path,
+			uuid,
+			<if test="platform != null">platform,</if>
+			<if test="version != null">version,</if>
+			<if test="device != null">device,</if>
+			reg_date
+		) VALUES (
+			#{path},
+			#{uuid},
+			<if test="platform != null">#{platform}, </if>
+			<if test="version != null">#{version}, </if>
+			<if test="device != null">#{device}, </if>
+			now()
+		)
+	</insert>
+</mapper>

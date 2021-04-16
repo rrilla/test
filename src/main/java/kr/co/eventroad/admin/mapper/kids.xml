@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kids">
+	<insert id="insertKids" useGeneratedKeys="true" keyProperty="seq_kids">
+		INSERT INTO tb_kids_d (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="kids_name != null"> kids_name, </if>
+			<if test="birth_year != null"> birth_year, </if>
+			<if test="birth_month != null"> birth_month, </if>
+			<if test="birth_day != null"> birth_day, </if>
+			<if test="sex != null"> sex, </if>
+			<if test="kids_image != null"> kids_image, </if>
+			
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="kids_name != null"> #{kids_name} ,</if>
+			<if test="birth_year != null"> #{birth_year} ,</if>
+			<if test="birth_month != null"> #{birth_month} ,</if>
+			<if test="birth_day != null"> #{birth_day} ,</if>
+			<if test="sex != null"> #{sex} ,</if>
+			<if test="kids_image != null"> #{kids_image} ,</if>
+			
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+
+	<select id="updateKids" resultType="hashmap">
+		UPDATE
+			tb_kids_d
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="kids_name != null"> kids_name=#{kids_name} </if>
+				<if test="birth_year != null">, birth_year=#{birth_year}</if>
+				<if test="birth_month != null">, birth_month=#{birth_month}</if>
+				<if test="birth_day != null">, birth_day=#{birth_day}</if>
+				<if test="sex != null">, sex=#{sex}</if>
+				<if test="kids_image != null">, kids_image=#{kids_image}</if>
+				<if test="push_yn != null">, push_yn=#{push_yn}</if>
+				
+				<if test="seq_kids != null">, seq_kids=#{seq_kids}</if>
+				
+				<if test="is_yn != null">, is_yn=#{is_yn}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_kids=#{seq_kids}
+    </select>
+
+	<select id="selectMyKidsList" resultType="hashmap">
+		select
+			am.seq_kindergarden_class, kd.seq_kids, am.rep_flag, km.seq_kindergarden, km.kindergarden_name, kcd.kindergarden_class_name, um.name, td.name_title, kd.kids_name, kd.kids_image, kd.sex, kd.birth_year, kd.birth_month, kd.birth_day
+		from
+			tb_apply_m am
+			inner join tb_user_m um on am.seq_user = um.seq_user
+			inner join tb_title_d td on am.seq_user = td.seq_user and am.seq_kids = td.seq_kids
+			inner join tb_kids_d kd on am.seq_kids = kd.seq_kids
+			inner join tb_kindergarden_m km on am.seq_kindergarden = km.seq_kindergarden and am.seq_user = #{seq_user} and am.req_flag = 'p'
+			left outer join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		order by seq_apply desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+
+	<select id="selectAttendanceBookList" resultType="hashmap">
+		select
+			am.rep_flag, am.seq_kindergarden, am.seq_kindergarden_class, kcd.kindergarden_class_name, um.name, td.name_title, kd.kids_name, kd.kids_image
+			, am.seq_kids
+		from
+			tb_apply_m am
+			inner join tb_user_m um on am.seq_user = um.seq_user
+			inner join tb_title_d td on am.seq_user = td.seq_user and am.seq_kids = td.seq_kids
+			inner join tb_kids_d kd on am.seq_kids = kd.seq_kids
+				and am.seq_kindergarden = #{seq_kindergarden}
+				<if test="seq_kindergarden_class != '0'.toString()">and am.seq_kindergarden_class = #{seq_kindergarden_class}</if>
+				and am.req_flag = 'p'
+				and am.rep_flag = 'y'
+			<if test="attendance_flag == 'o'.toString()">
+				and kd.seq_kids not in (select seq_kids from tb_attendance_book_m abm where abm.seq_kindergarden = #{seq_kindergarden} and abm.year = #{year} and abm.month = #{month} and abm.day = #{day} and attendance_flag='x' )
+			</if>
+			<if test="attendance_flag == 'x'.toString()">
+				and kd.seq_kids in (select seq_kids from tb_attendance_book_m abm where abm.seq_kindergarden = #{seq_kindergarden} and abm.year = #{year} and abm.month = #{month} and abm.day = #{day} and attendance_flag=#{attendance_flag} )
+			</if>
+			inner join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+    </select>
+    <!-- select
+		am.rep_flag, am.seq_kindergarden, am.seq_kindergarden_class, kcd.kindergarden_class_name, um.name, td.name_title, kd.kids_name, kd.kids_image
+		, am.seq_kids, abm.seq_attendance_book
+	from
+		tb_apply_m am
+		inner join tb_user_m um on am.seq_user = um.seq_user
+		inner join tb_title_d td on am.seq_user = td.seq_user and am.seq_kids = td.seq_kids
+		inner join tb_kids_d kd on am.seq_kids = kd.seq_kids
+			and am.seq_kindergarden = #{seq_kindergarden}
+			<if test="seq_kindergarden_class != '0'.toString()">and am.seq_kindergarden_class = #{seq_kindergarden_class}</if>
+			and am.req_flag = 'p'
+			and am.rep_flag = 'y'
+		<if test="attendance_flag == 'w'.toString()">
+			and kd.seq_kids not in (select seq_kids from tb_attendance_book_m abm where abm.seq_kindergarden = #{seq_kindergarden} and abm.year = #{year} and abm.month = #{month} and abm.day = #{day})
+		</if>
+		<if test="attendance_flag != 'w'.toString()">
+			and kd.seq_kids in (select seq_kids from tb_attendance_book_m abm where abm.seq_kindergarden = #{seq_kindergarden} and abm.year = #{year} and abm.month = #{month} and abm.day = #{day} and attendance_flag=#{attendance_flag} )
+		</if>
+		inner join tb_kindergarden_class_d kcd on am.seq_kindergarden_class = kcd.seq_kindergarden_class
+		left outer join tb_attendance_book_m abm on am.seq_kindergarden=abm.seq_kindergarden and am.seq_kids=abm.seq_kids and abm.year= #{year} and abm.month = #{month} and abm.day = #{day} -->
+	
+	<select id="selectAttendanceBookCheckList" resultType="hashmap">
+		select
+			*
+		from
+			tb_attendance_book_m
+		where
+			seq_kindergarden = #{seq_kindergarden}
+			and year = #{year}
+			and month = #{month}
+			and day = #{day}
+			and seq_kids in (${seq_kids_arr})
+    </select>
+
+	<insert id="insertAttendanceBook" parameterType="java.util.List">
+		insert into tb_attendance_book_m(seq_kids, seq_kindergarden, year, month, day, attendance_flag, memo, reg_date)
+        values
+        <foreach collection="list" item="item" separator=" , ">
+    		(#{item.seq_kids}, #{item.seq_kindergarden}, #{item.year}, #{item.month}, #{item.day}, #{item.attendance_flag}, #{item.memo}, now())
+    	</foreach>
+	</insert>
+	
+	<select id="selectCheckInsertAttendanceBook" resultType="hashmap">
+		select seq_kids from tb_attendance_book_m where seq_kindergarden = #{seq_kindergarden} and year = #{year} and month = #{month} and day = #{day} and seq_kids in (${seq_kids_arr})
+	</select>
+	
+	<select id="updateAttendanceBook" resultType="hashmap">
+		UPDATE
+			tb_attendance_book_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="attendance_flag != null"> attendance_flag = #{attendance_flag} </if>
+				<if test="memo != null">, memo = #{memo} </if>
+			</trim>
+		</set>
+		WHERE
+			seq_kindergarden = #{seq_kindergarden}
+			and year = #{year}
+			and month = #{month}
+			and day = #{day}
+			and seq_kids in (${seq_kids_arr})
+    </select>
+
+	<select id="selectKidsAttendanceBookList" resultType="hashmap">
+		select
+			*
+		from
+			tb_attendance_book_m
+		where
+			seq_kids = #{seq_kids}
+			and seq_kindergarden = #{seq_kindergarden}
+			and year =#{year}
+			and month=#{month}
+		order by day asc
+    </select>
+
+	<select id="selectPushStationKidsList" resultType="hashmap">
+		select
+			um.token, cm.car_name, tum.name, tum.seq_user
+		from
+			tb_kids_station_d ksd
+			inner join tb_kids_d kd on ksd.seq_kids = kd.seq_kids
+				and kd.seq_kids not in (
+					select hrm.seq_kids from tb_home_request_m hrm where hrm.seq_kindergarden = ksd.seq_kindergarden and year = #{year} and month=#{month} and day=#{day} and hrm.seq_user_teacher is not null
+						union
+            		select seq_kids from tb_attendance_book_m where year=#{year} and month=#{month} and day=#{day} and attendance_flag = 'x'
+					)
+		    inner join tb_user_m um on kd.seq_user = um.seq_user
+		    inner join tb_car_station_d csd on ksd.seq_car_station = csd.seq_car_station
+			inner join tb_car_m cm on csd.seq_car = cm.seq_car
+			inner join tb_user_m tum on cm.seq_user = tum.seq_user
+		where 
+			ksd.seq_car_station = #{seq_car_station}
+		    <if test="monday != null">and ksd.monday = #{monday}</if>
+			<if test="tuesday != null">and ksd.tuesday = #{tuesday}</if>
+			<if test="wednesday != null">and ksd.wednesday = #{wednesday}</if>
+			<if test="thursday != null">and ksd.thursday = #{thursday}</if>
+			<if test="friday != null">and ksd.friday = #{friday}</if>
+			<if test="saturday != null">and ksd.saturday = #{saturday}</if>
+			<if test="sunday != null">and ksd.sunday = #{sunday}</if>
+    </select>
+
+	<select id="selectKidsOne" resultType="hashmap">
+		SELECT kd.seq_kids, kd.kids_name, kd.birth_year, kd.birth_month, kd.birth_day, kd.sex, kd.kids_image, km.kindergarden_name FROM tb_kids_d kd
+		inner join tb_apply_m am on kd.seq_kids = am.seq_kids and kd.seq_kids = #{seq_kids}
+		inner join tb_kindergarden_m km on am.seq_kindergarden = km.seq_kindergarden
+    </select>
+
+	 <select id="selectAttendanceBookKidsCheckOne" resultType="java.lang.Integer">
+		select count(abm.seq_attendance_book) as count_attendance_book
+		from
+			tb_attendance_book_m abm
+		where
+			abm.seq_kids = #{seq_kids}
+			and abm.year = #{year}
+			and abm.month = #{month}
+			and abm.day = #{day}
+    </select>
+			
+	<select id="selectAttendanceBookKidsTermList" resultType="hashmap">
+		select
+			*
+		from
+			tb_attendance_book_m abm
+		where
+			abm.seq_kids = #{seq_kids}
+			and (abm.year, abm.month, abm.day)
+				in
+			(
+				 <foreach collection="list" item="item" separator=" , ">
+				 	(#{item.year}, #{item.month}, #{item.day})
+				 </foreach>
+			)
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<select id="selectJobCategoryList" resultType="hashmap">
+		select
+			*
+		from
+			tb_comn_m
+		where
+			comn_cd = 'job_category_cd'
+			and is_yn = 'y'
+			order by sort_serl
+    </select>
+
+	<select id="selectDtlJobCategory" resultType="hashmap">
+		select
+			*
+		from
+			tb_comn_m
+		where
+			comn_cd = 'dtl_job_category_cd'
+			and up_dtl_item_cd = #{job_category_cd}
+			and is_yn = 'y'
+			order by sort_serl
+    </select>
+
+	<select id="selectJobList" resultType="hashmap">
+		select
+			group_concat(DISTINCT cm.dtl_item_nm order by jm.dtl_area_category_cd asc SEPARATOR ',') as job_category_list, group_concat(DISTINCT jm.dtl_item_nm order by jm.dtl_job_category_cd asc SEPARATOR ',') as area_category_list, cpm.lat, cpm.lng, cm2.lat, cm2.lng, cpm.*,
+				ifnull(
+					floor(
+						SQRT(
+							<choose>
+								<when test="lat == null or lng == null">
+									((((cm2.lat - cpm.lat) * 100000.0 * 1.110) * ((cm2.lat - cpm.lat) * 100000.0 * 1.110)) + (((cm2.lng - cpm.lng) * 100000.0 * 0.884) * ((cm2.lng - cpm.lng) * 100000.0 * 0.884)))
+								</when>
+								<when test="lat != null and lat != null">
+									((((#{lat} - cpm.lat) * 100000.0 * 1.110) * ((#{lat} - cpm.lat) * 100000.0 * 1.110)) + (((#{lng} - cpm.lng) * 100000.0 * 0.884) * ((#{lng} - cpm.lng) * 100000.0 * 0.884)))
+								</when>
+							</choose>
+							)
+						)
+				, 0) as distance
+		from
+			tb_company_m cpm
+		inner join (
+			select
+				jm.*, cm.dtl_item_nm
+			from
+				tb_job_m jm
+				-- inner join tb_job_country_category_d jccd on jm.seq_job = jccd.seq_job
+				inner join tb_comn_m cm on comn_cd = 'dtl_area_category_cd'
+				and jm.dtl_area_category_cd = cm.dtl_item_cd
+		    	and jm.area_category_cd = #{area_category_cd}
+		    	
+		    <if test="area_category_cd != dtl_area_category_cd">
+				and jm.dtl_area_category_cd = #{dtl_area_category_cd}
+			</if>
+		    and jm.job_category_cd = #{job_category_cd}
+		    <if test="dtl_job_category_cd != 'all'.toString()">
+		    	and jm.dtl_job_category_cd = #{dtl_job_category_cd}
+			</if>
+			<if test="sex_category != 'all'.toString()">
+		    	and jm.sex_category = #{sex_category}
+			</if>
+			<!-- <if test="job_country_category_cd0 != 'all'.toString()">
+		    and (
+					<if test="job_country_category_cd0 != null">
+						jccd.job_country_category_cd=#{job_country_category_cd0}
+					</if>
+					<if test="job_country_category_cd1 != null">
+						or jccd.job_country_category_cd=#{job_country_category_cd1}
+					</if>
+					<if test="job_country_category_cd2 != null">
+						or jccd.job_country_category_cd=#{job_country_category_cd2}
+					</if>
+		    	)
+		    </if> -->
+		    group by jm.seq_job order by null
+		) jm on cpm.seq_company = jm.seq_company
+		inner join tb_comn_m cm on cm.comn_cd = 'dtl_job_category_cd' and jm.dtl_job_category_cd = cm.dtl_item_cd -- 직업 카테고리 1, 2차
+		inner join tb_comn_m cm2 on cm2.comn_cd = 'dtl_area_category_cd' and cm2.dtl_item_cd = #{dtl_area_category_cd} -- lat lng null 일때
+		group by cpm.seq_company
+		order by distance, cpm.seq_company
+    </select>
+	
+	
+	<select id="selectJobInfoList" resultType="hashmap">
+		 SELECT cm.* from tb_comn_m cm
+		 inner join tb_comn_m cm2
+		 on cm.comn_cd = 'dtl_job_category_cd'
+		 and cm2.comn_cd = 'job_category_cd'
+		 and cm.up_dtl_item_cd = cm2.dtl_item_cd
+		 and cm.sort_serl != 0
+		 order by cm2.sort_serl, cm.sort_serl
+    </select>
+
+	<select id="selectCompanyJobList" resultType="hashmap">
+		select cm3.sort_serl, cm2.sort_serl, cm2.dtl_item_nm, cm2.comn_cdnm, cm.dtl_item_nm, cm.comn_cdnm, jm.* from tb_job_m jm
+		inner join tb_comn_m cm on cm.comn_cd = 'dtl_job_category_cd' and jm.dtl_job_category_cd = cm.dtl_item_cd
+		inner join tb_comn_m cm2 on cm2.comn_cd = 'dtl_area_category_cd' and  jm.dtl_area_category_cd = cm2.dtl_item_cd
+		inner join tb_comn_m cm3 on cm3.comn_cd = 'area_category_cd' and jm.area_category_cd = cm3.dtl_item_cd
+		where jm.seq_company = #{seq_company}
+    </select>
+
+	<select id="selectCompanyInfo" resultType="hashmap">
+		 select * from tb_company_m where seq_company=#{seq_company}
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<select id="selectCampaignList" resultType="hashmap">
+		select
+			*
+		from
+			tb_campaign_m
+		order by reg_date desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+<!-- 		LIMIT ${(page-1)*10}, ${(page-1)*10+10}; -->
+	
+	<insert id="insertAgency" useGeneratedKeys="true" keyProperty="seq_campaign">
+		INSERT INTO tb_user_m
+		(
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="img_campaign != null"> img_campaign, </if>
+			<if test="title_campaign != null"> title_campaign, </if>
+			<if test="start_date != null"> start_date, </if>
+			<if test="end_date != null"> end_date, </if>
+			<if test="seq_video != null"> seq_video, </if>
+			<if test="img_prdct != null"> img_prdct, </if>
+			<if test="title_prdct != null"> title_prdct, </if>
+			<if test="reg_date == null"> reg_date </if>
+		</trim>
+		)VALUES(
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="img_campaign != null"> #{img_campaign} ,</if>
+			<if test="title_campaign != null"> #{title_campaign} ,</if>
+			<if test="start_date != null"> to_date(#{start_date}) ,</if>
+			<if test="end_date != null"> to_date(#{end_date}) ,</if>
+			<if test="seq_video != null"> #{seq_video} ,</if>
+			<if test="img_prdct != null"> #{img_prdct} ,</if>
+			<if test="title_prdct != null"> #{title_prdct} ,</if>
+			<if test="reg_date == null"> now() </if>
+		</trim>
+		)
+    </insert>
+    
+    <select id="selectBeaconConditionsList" resultType="hashmap">
+<!-- 		select ifnull(datediff(brd2.end_date, now()),0 )as 'dday', bm.beacon_sn, bm.seq_user, (if(bm.seq_user_prt = 1 , bm.seq_user, ued.seq_user_prt) ) as 'seq_user_agency', if(brd2.start_date <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y-%m-%d') and brd2.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn', bm.seq_user_prt, bm.reg_date, brd.seq_beacon_req, brd2.seq_store, brd2.proc_stat, brd2.start_date, brd2.end_date, brd2.price, ued.name, ued2.name as 'name_prt', sm.store_name, am.authority, if(  isnull(cm.sort_serl) or cm.sort_serl=11 or cm.sort_serl=13 or cm.sort_serl=15 or cm.sort_serl=17, 8, cm.sort_serl) as sort_serl -->
+		select * from (
+			select ifnull(datediff(brd2.end_date, now()),0 )as 'dday', bm.beacon_sn, sm.seq_user as 'seq_user_store', bm.seq_user, (if(bm.seq_user_prt = 1 , bm.seq_user, ued.seq_user_prt) ) as 'seq_user_agency', if(brd2.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn', bm.seq_user_prt, bm.reg_date, brd.seq_beacon_req, brd2.seq_store, brd2.proc_stat, brd2.start_date, brd2.end_date, brd2.price, ued.name, ued2.name as 'name_prt', sm.store_name, am.authority, if(  isnull(cm.sort_serl) or cm.sort_serl=11 or cm.sort_serl=13 or cm.sort_serl=15 or cm.sort_serl=17, 8, cm.sort_serl) as sort_serl
+			from tb_beacon_m bm left outer join (
+				SELECT beacon_sn, max(seq_beacon_req) as seq_beacon_req
+				FROM tb_beacon_req_d
+				where proc_stat='RA' or proc_stat='RC' or proc_stat='RD'
+				GROUP BY beacon_sn
+			) brd on bm.beacon_sn = brd.beacon_sn
+			left outer join tb_beacon_req_d brd2 on brd.seq_beacon_req = brd2.seq_beacon_req
+			inner join tb_user_ex_d ued on bm.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on bm.seq_user_prt = ued2.seq_user
+			left outer join tb_store_m sm on brd2.seq_store = sm.seq_store
+			inner join tb_auth_m am on bm.seq_user = am.seq_user
+			left outer join tb_comn_m cm on cm.comn_cd = 'proc_stat_cd' and brd2.proc_stat = cm.dtl_item_cd
+		) ret
+		where 1=1
+		<if test="seq_user_agency != null and seq_user_agency!=-1">and ret.seq_user_agency = #{seq_user_agency}</if>
+		<if test="seq_user != null and seq_user !=-1">and ret.seq_user = #{seq_user}</if>
+		<if test="seq_user_store != null and seq_user !=-1">and ret.seq_user_store = #{seq_user_store}</if>
+		<if test="keyword != null">and (ret.beacon_sn like #{keyword} or ret.store_name like #{keyword} )</if>
+		
+		order by ret.sort_serl, seq_user_prt, seq_user, ret.beacon_sn, ret.reg_date
+		LIMIT ${(page-1)*10}, 10
+    </select>
+    
+    <select id="selectBeaconConditionsCount" resultType="java.lang.Integer">
+    	select count(beacon_sn) from (
+			select ifnull(datediff(brd2.end_date, now()),0 )as 'dday', bm.beacon_sn, sm.seq_user as 'seq_user_store', bm.seq_user, (if(bm.seq_user_prt = 1 , bm.seq_user, ued.seq_user_prt) ) as 'seq_user_agency', if(brd2.end_date <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y-%m-%d'), 'y', 'n') as 'proc_ra_yn', bm.seq_user_prt, bm.reg_date, brd.seq_beacon_req, brd2.seq_store, brd2.proc_stat, brd2.start_date, brd2.end_date, brd2.price, ued.name, ued2.name as 'name_prt', sm.store_name, am.authority, if(  isnull(cm.sort_serl) or cm.sort_serl=11 or cm.sort_serl=13 or cm.sort_serl=15 or cm.sort_serl=17, 8, cm.sort_serl) as sort_serl
+			from tb_beacon_m bm left outer join (
+				SELECT beacon_sn, max(seq_beacon_req) as seq_beacon_req
+				FROM tb_beacon_req_d
+				where proc_stat='RA' or proc_stat='RC' or proc_stat='RD'
+				GROUP BY beacon_sn
+			) brd on bm.beacon_sn = brd.beacon_sn
+			left outer join tb_beacon_req_d brd2 on brd.seq_beacon_req = brd2.seq_beacon_req
+			inner join tb_user_ex_d ued on bm.seq_user = ued.seq_user
+			inner join tb_user_ex_d ued2 on bm.seq_user_prt = ued2.seq_user
+			left outer join tb_store_m sm on brd2.seq_store = sm.seq_store
+			inner join tb_auth_m am on bm.seq_user = am.seq_user
+			left outer join tb_comn_m cm on cm.comn_cd = 'proc_stat_cd' and brd2.proc_stat = cm.dtl_item_cd
+		) ret
+		where 1=1
+		<if test="seq_user_agency != null and seq_user_agency!=-1">and ret.seq_user_agency = #{seq_user_agency}</if>
+		<if test="seq_user != null and seq_user !=-1">and ret.seq_user = #{seq_user}</if>
+		<if test="seq_user_store != null and seq_user !=-1">and ret.seq_user_store = #{seq_user_store}</if>
+		<if test="keyword != null">and (ret.beacon_sn like #{keyword} or ret.store_name like #{keyword} )</if>
+    </select>
+    
+    
+    
+    <select id="selectAgencyNameList" resultType="hashmap">
+    	select
+			um.seq_user, ued.name as 'agency_name' from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_AGENCY'
+    </select>
+    
+    <select id="excellBeaconFileCheck" parameterType="java.util.List" resultType="hashmap">
+    	select
+    		*
+    	from
+    		tb_beacon_m
+    	where
+    		beacon_sn in
+    		<foreach collection="list" item="type"  open="(" close=")" separator=",">
+    			#{type}
+    		</foreach>
+    </select>
+    
+	<insert id="insertBeacon" parameterType="java.util.List">
+		insert into tb_beacon_m(beacon_sn, seq_user, seq_user_prt, reg_date)
+        values
+        <foreach collection="list" item="item" separator=" , ">
+            (#{item}, 1, 1,now())
+        </foreach>
+	</insert>
+    
+    <update id="updateBeacon">
+		UPDATE tb_beacon_m
+		<set>
+			<trim prefixOverrides=",">
+				<if test="seq_user != null">, seq_user = #{seq_user}</if>
+				<if test="seq_user_prt != null">, seq_user_prt = #{seq_user_prt}</if>
+				<if test="is_yn != null">, is_yn = #{is_yn}</if>
+			</trim>
+		</set>
+		WHERE beacon_sn=#{beacon_sn}
+	</update>
+    
+    <select id="selectDealerList" resultType="hashmap">
+		select
+			um.seq_user, 
+			
+			(select count(seq_user_ex) from tb_user_ex_d where seq_user_prt = um.seq_user) as 'store_count',
+			
+			um.id, ued.*, ued.name as 'dealer_name', ued2.name as 'agency_name'
+			
+		from
+			tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+		
+		where
+			am.authority = 'ROLE_DEALER'
+			and ued.seq_user_prt = #{seq_user}
+			<if test="keyword != null"> and (um.id like #{keyword} or ued.name like #{keyword})</if>
+		order by um.seq_user desc
+		LIMIT ${(page-1)*10}, 10
+    </select>
+    
+     <select id="selectDealerCount" resultType="java.lang.Integer">
+		select
+			count(um.seq_user) 
+		from
+			tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		inner join tb_user_ex_d ued2 on ued.seq_user_prt = ued2.seq_user
+		
+		where
+			am.authority = 'ROLE_DEALER'
+			and ued.seq_user_prt = #{seq_user}
+    </select>
+    
+	<select id="selectDealerNameList" resultType="hashmap">
+		select
+			um.seq_user, ued.name as 'agency_name' from
+		tb_user_m um
+		inner join tb_auth_m am on um.seq_user = am.seq_user
+		inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			am.authority = 'ROLE_DEALER'
+			and ued.seq_user_prt = #{seq_user_agency}
+			<if test="keyword != null"> and (um.id like #{keyword} or ued.name like #{keyword})</if>
+	</select>
+    
+    
+    
+    
+    
+    
+    
+    <select id="deleteCampaign" resultType="hashmap">
+<!-- 		delete from TB_VIDEO where SEQ_VIDEO = nvl((select seq_video from TB_THEME where SEQ_THEME=#{SEQ_THEME}),0) -->
+		DELETE FROM tb_campaign_m where seq_campaign=#{seq_campaign}
+	</select>
+    
+    <select id="getBrchListExcel" resultType="hashmap">
+		select seq_corp_brch, brch_name, concat(ar1, ' ',ar2, ' ', ar3, ' ', ar4, ' ', bunji) as addr
+		from tb_corp_brch_d
+		where seq_corp = (select seq_corp from tb_user_m where seq_user = #{seq_user})
+	</select>
+    
+    <select id="selectCampaign" resultType="hashmap">
+		select
+			*
+		from
+			tb_campaign_m
+		where
+			seq_campaign = #{seq_campaign}
+	</select>
+    
+     <select id="selectCampaignPrdct" resultType="hashmap">
+		SELECT
+			img_a, title_a, percent_a, img_b, title_b, percent_b, img_c, title_c, percent_c, img_d, title_d, percent_d, img_e, title_e, percent_e, img_f, title_f, percent_f, img_g, title_g, percent_g, img_h, title_h, percent_h, img_i, title_i, percent_i, img_j, title_j, percent_j
+		FROM
+			tb_campaign_prdct_d
+		WHERE
+			seq_campaign=#{seq_campaign}
+	</select>
+	
+    <select id="deleteCampaignPrdct" resultType="hashmap">
+		DELETE FROM tb_campaign_prdct_d WHERE seq_campaign=#{seq_campaign}
+	</select>
+    
+	<select id="selectSeqCampaignPrdct" resultType="java.lang.String">
+		SELECT
+			seq_campaign_prdct
+		FROM
+			tb_campaign_prdct_d
+		WHERE
+			seq_campaign=#{seq_campaign}
+	</select>
+	
+	
+	
+	
+	
+	
+    <select id="temp_select" resultType="hashmap">
+         select
+		  bo.seq_board ,bo.BOARD_DETAIL, br.SEQ_BROADCAST, vi.SEQ_STORE, vi.SEQ_VIDEO, br.START_DATE, br.END_DATE, br.BROADCAST_DETAIL, vi.VIDEO_FILE, vi.SCREEN_FILE
+		from
+		  tb_board bo, TB_BROADCAST br, TB_VIDEO vi
+		where
+		  br.SEQ_BROADCAST = bo.SEQ_BROADCAST
+		  and vi.SEQ_VIDEO = br.SEQ_VIDEO
+		  and bo.seq_board=#{SEQ_BOARD}
+    </select>
+    
+    <update id="temp_update">
+           UPDATE TB_BROADCAST
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="BROADCAST_DETAIL != null"> BROADCAST_DETAIL = #{BROADCAST_DETAIL}</if>
+					<if test="START_DATE != null">, START_DATE = #{START_DATE}</if>
+					<if test="END_DATE != null">, END_DATE = #{END_DATE}</if>
+				</trim>
+			</set>
+		WHERE SEQ_BROADCAST=#{SEQ_BROADCAST}
+        <!-- <if test="SELECT_TYPE=='EV'.toString()">
+            UPDATE
+				TB_EVENT
+			SET
+				<if test="APPLY_YN =='Y'.toString()">
+					APPLY_YN='N'
+				</if>
+				<if test="APPLY_YN =='N'.toString()">
+					APPLY_YN='Y'
+				</if>
+			WHERE
+				SEQ_EVENT=#{SEQ_KEY}
+        </if> -->
+	</update>
+	
+	<select id="selectCheckNews" resultType="hashmap">
+		select 
+			(select count(seq_beacon_req) from tb_beacon_req_d  where seq_user in (select seq_user from tb_user_ex_d where seq_user_prt=#{seq_user}) and proc_stat = 'RD') as 'beacon'
+		from dual
+	</select>
+</mapper>

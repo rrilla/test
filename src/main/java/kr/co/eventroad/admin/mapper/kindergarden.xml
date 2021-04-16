@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kindergarden">
+	<select id="selectKindergardenList" resultType="hashmap">
+		select
+			*
+		from
+			tb_kindergarden_m
+		where
+			1=1
+			<if test="ar1 != null">and ar1=#{ar1} </if>
+			<if test="ar2 != null">and ar2=#{ar2} </if>
+			<if test="kindergarden_name != null">and kindergarden_name like #{kindergarden_name} </if>
+		order by seq_kindergarden desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+
+	<select id="selectKindergardenClassList" resultType="hashmap">
+		select
+			*
+		from
+			tb_kindergarden_class_d
+		where
+			seq_kindergarden = #{seq_kindergarden}
+		order by seq_kindergarden_class desc
+		LIMIT ${(page-1)*10}, 10
+	</select>
+
+	<select id="selectReqKindergardenApplyCheck" resultType="hashmap">
+		select
+			*
+		from
+			tb_apply_m
+		where
+			seq_user = #{seq_user}
+			and req_flag = #{req_flag}
+			<if test="seq_kids != null">and seq_kids=#{seq_kids} </if>
+	</select>
+
+	<insert id="inserReqKindergardenApply">
+		INSERT INTO tb_apply_m (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> seq_kindergarden, </if>
+			<if test="seq_kindergarden_class != null"> seq_kindergarden_class, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="req_flag != null"> req_flag, </if>
+			<if test="year != null"> year, </if>
+			<if test="month != null"> month, </if>
+			<if test="day != null"> day, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_kindergarden != null"> #{seq_kindergarden} ,</if>
+			<if test="seq_kindergarden_class != null"> #{seq_kindergarden_class} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="req_flag != null"> #{req_flag} ,</if>
+			<if test="year != null"> #{year} ,</if>
+			<if test="month != null"> #{month} ,</if>
+			<if test="day != null"> #{day} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+
+	<select id="updateReqKindergardenApply" resultType="hashmap">
+		UPDATE
+			tb_apply_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="rep_flag != null"> rep_flag = #{rep_flag} </if>
+				<if test="year != null">, year = #{year} </if>
+				<if test="month != null">, month = #{month} </if>
+				<if test="day != null">, day = #{day} </if>
+			</trim>
+		</set>
+		WHERE
+			seq_apply = #{seq_apply}
+    </select>
+
+	<select id="selectKindergardenOne" resultType="hashmap">
+	    select seq_kindergarden, kindergarden_name, tel_no, ar1, ar2, addr_etc from tb_kindergarden_m where seq_kindergarden = #{seq_kindergarden}
+    </select>
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+    <select id="selectArea" resultType="hashmap">
+	    SELECT
+	       distinct ${ar_name} as ar_name
+		FROM
+			tb_area_m
+		WHERE
+			<if test="ar_name == 'ar1'.toString()"> 
+				1=1
+			</if>
+			<if test="ar_name == 'ar2'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar3'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar4'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 = #{ar3} and ar3 <![CDATA[<>]]> '' and
+				ar4 <![CDATA[<>]]> ''
+				order by ${ar_name}
+			</if>
+			<if test="ar_name == 'ar5'.toString()">
+				ar1 = #{ar1} and ar1 <![CDATA[<>]]> '' and
+				ar2 = #{ar2} and ar2 <![CDATA[<>]]> '' and
+				ar3 = #{ar3} and ar3 <![CDATA[<>]]> '' and
+				ar4 = #{ar4} and ar4 <![CDATA[<>]]> '' and
+				ar5 <![CDATA[<>]]> ''
+			</if>
+    </select>
+    
+</mapper>

@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="user">
+	<insert id="insertSign" useGeneratedKeys="true" keyProperty="seq_user">
+		INSERT INTO tb_user_m (
+		<trim suffixOverrides=",">
+			<if test="id != null"> id, </if>
+			<if test="password != null"> password, </if>
+			<if test="name != null"> name, </if>
+			<if test="birthday != null"> birthday, </if>
+			<if test="phone_no != null"> phone_no, </if>
+			<if test="email != null"> email, </if>
+			<if test="token != null"> token, </if>
+			<if test="user_image != null"> user_image, </if>
+			<if test="ar1 != null"> ar1, </if>
+			<if test="ar2 != null"> ar2, </if>
+			<if test="addr_etc != null"> addr_etc, </if>
+			<if test="director_title != null"> director_title, </if>
+			
+			<if test="uuid != null"> uuid, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="id != null"> #{id} ,</if>
+			<if test="password != null"> #{password} ,</if>
+			<if test="name != null"> #{name} ,</if>
+			<if test="birthday != null"> #{birthday} ,</if>
+			<if test="phone_no != null"> #{phone_no} ,</if>
+			<if test="email != null"> #{email} ,</if>
+			<if test="token != null"> #{token} ,</if>
+			<if test="user_image != null"> #{user_image} ,</if>
+			<if test="ar1 != null"> #{ar1} ,</if>
+			<if test="ar2 != null"> #{ar2} ,</if>
+			<if test="addr_etc != null"> #{addr_etc} ,</if>
+			<if test="director_title != null"> #{director_title} ,</if>
+			
+			<if test="uuid != null"> #{uuid} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<insert id="insertAuth">
+		INSERT INTO tb_auth_m (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="authority != null"> authority, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="authority != null"> #{authority} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="selectUserIdCheck" resultType="hashmap">
+	   select
+        	id
+		from
+		  	tb_user_m
+		where
+			id = #{id}
+    </select>
+	
+	<select id="login" resultType="hashmap">
+		select
+	   		um.seq_user, um.id, um.password, am.authority, um.id, um.name, um.phone_no, um.email, um.token, um.push_yn, um.user_image, um.ar1, um.ar2, um.addr_etc, um.birthday
+	   	from
+	   		tb_user_m um
+	   		inner join tb_auth_m am
+	   	on um.seq_user = am.seq_user
+	   	where um.id = #{id}
+    </select>
+
+	<select id="updateUser" resultType="hashmap">
+		UPDATE
+			tb_user_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="id != null"> id=#{id} </if>
+				<if test="password != null">, password=#{password} </if>
+				<if test="name != null">, name=#{name}</if>
+				<if test="birthday != null">, birthday=#{birthday}</if>
+				<if test="phone_no != null">, phone_no=#{phone_no}</if>
+				<if test="email != null">, email=#{email}</if>
+				<if test="token != null">, token=#{token}</if>
+				<if test="user_image != null">, user_image=#{user_image}</if>
+				<if test="ar1 != null">, ar1=#{ar1}</if>
+				<if test="ar2 != null">, ar2=#{ar2}</if>
+				<if test="addr_etc != null">, addr_etc=#{addr_etc}</if>
+				<if test="director_title != null">, director_title=#{director_title}</if>
+				
+				<if test="lat != null">, lat=#{lat}</if>
+				<if test="lng != null">, lng=#{lng}</if>
+				
+				<if test="push_yn != null">, push_yn=#{push_yn}</if>
+				
+				<if test="uuid != null">, uuid=#{uuid}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_user=#{seq_user}
+    </select>
+
+	<insert id="insertTitle">
+		INSERT INTO tb_title_d (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_kids != null"> seq_kids, </if>
+			<if test="name_title != null"> name_title, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_kids != null"> #{seq_kids} ,</if>
+			<if test="name_title != null"> #{name_title} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<select id="updateTitle" resultType="hashmap">
+		UPDATE
+			tb_title_d
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_user != null"> seq_user=#{seq_user} </if>
+				<if test="name_title != null">, name_title=#{name_title}</if>
+			</trim>
+		</set>
+		WHERE
+			seq_user=#{seq_user}
+			and seq_kids=#{seq_kids}
+    </select>
+	
+	<select id="selectUserReduplicationIdCheck" resultType="java.lang.String">
+		SELECT count(seq_user) from tb_user_m where id= #{id}
+	</select>
+	
+	<select id="selectUserInfoList" resultType="hashmap">
+	    select
+	    	*
+	    from
+	    	tb_user_m
+	    where
+	    	email = #{email}
+	    	<if test="id != null">and id = #{id}</if> 
+    </select>
+	
+	<select id="selectUserOne" resultType="hashmap">
+	    select
+			seq_user, id, name, birthday, phone_no, email, token, user_image, ar1, ar2, addr_etc, director_title, push_yn
+		from
+			tb_user_m
+		where
+			seq_user = #{seq_user}
+    </select>
+	
+	<select id="updateBeaconInit" resultType="hashmap">
+		UPDATE
+			tb_beacon_m
+		<set>
+		    <trim prefixOverrides=",">
+				<if test="seq_kids != null"> seq_kids=0 </if>
+			</trim>
+		</set>
+		WHERE
+			seq_kids=#{seq_kids}
+    </select>
+	
+	<select id="deleteKidsStationAll" resultType="hashmap">
+    	DELETE FROM tb_kids_station_d where seq_kids = #{seq_kids}
+    </select>
+	
+	<select id="deleteNewsAll" resultType="hashmap">
+    	DELETE FROM
+    		tb_news_m
+    	where
+    		seq_user = #{seq_user}
+    		or seq_kids = #{seq_kids}
+    </select>
+	
+	<select id="deleteApply" resultType="hashmap">
+    	DELETE FROM
+    		tb_apply_m
+    	where
+    		seq_user = #{seq_user}
+    		<if test="seq_kids != null">and seq_kids = #{seq_kids} </if>
+    </select>
+	
+	<select id="updateCarInit" resultType="hashmap">
+		UPDATE
+			tb_car_m
+		<set>
+		    <trim prefixOverrides=",">
+				state_flag='e'
+				<if test="seq_user != null">, seq_user=0 </if>
+			</trim>
+		</set>
+		WHERE
+			seq_user=#{seq_user}
+    </select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+	<select id="selectUserId" parameterType="String" resultType="String">
+	   select
+        	id
+		from
+		  	tb_user_m
+		where
+			seq_user = #{username}
+    </select>
+    
+	<insert id="insertUserEx">
+		INSERT INTO tb_user_ex_d (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> seq_user, </if>
+			<if test="seq_user_prt != null"> seq_user_prt, </if>
+			<if test="name != null"> name, </if>
+			<if test="email != null"> email, </if>
+			<if test="tel_no != null"> tel_no, </if>
+			<if test="phone_no != null"> phone_no, </if>
+			<if test="corp_regnum != null"> corp_regnum, </if>
+			<if test="start_date != null"> start_date, </if>
+			<if test="end_date != null"> end_date, </if>
+			<if test="reg_date == null"> reg_date, </if>
+		</trim>
+		) VALUES (
+		<trim suffixOverrides=",">
+			<if test="seq_user != null"> #{seq_user} ,</if>
+			<if test="seq_user_prt != null"> #{seq_user_prt} ,</if>
+			<if test="name != null"> #{name} ,</if>
+			<if test="email != null"> #{email} ,</if>
+			<if test="tel_no != null"> #{tel_no} ,</if>
+			<if test="phone_no != null"> #{phone_no} ,</if>
+			<if test="corp_regnum != null"> #{corp_regnum} ,</if>
+			<if test="start_date != null"> #{start_date} ,</if>
+			<if test="end_date != null"> #{end_date} ,</if>
+			<if test="reg_date == null"> now(), </if>
+		</trim>
+		)
+	</insert>
+	
+	<update id="updateUserEx">
+            UPDATE
+				tb_user_ex_d
+			<set>
+			    <trim prefixOverrides=",">
+					<if test="name != null"> name=#{name} </if>
+					<if test="email != null">, email=#{email} </if>
+					<if test="tel_no != null">, tel_no=#{tel_no}</if>
+					<if test="phone_no != null">, phone_no=#{phone_no}</if>
+					<if test="corp_regnum != null">, corp_regnum=#{corp_regnum}</if>
+					<if test="start_date != null">, start_date=#{start_date}</if>
+					<if test="end_date != null">, end_date=#{end_date}</if>
+				</trim>
+			</set>
+			WHERE
+				seq_user=#{seq_user}
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="getUserLogin" resultType="hashmap">
+	   select
+        	*
+		from
+		  	tb_member
+		where
+			mb_id = #{mb_id}
+			and mb_password = #{mb_password}
+    </select>
+    
+	<select id="selectUserEx" resultType="hashmap">
+		select
+			um.seq_user, um.id, ued.*
+		from
+			tb_user_m um
+			inner join tb_user_ex_d ued on um.seq_user = ued.seq_user
+		where
+			um.seq_user = #{seq_user}
+    </select>
+    
+    <select id="selectUserPassword" resultType="String">
+		select password from tb_user_m where seq_user = #{seq_user}
+    </select>
+    
+</mapper>
